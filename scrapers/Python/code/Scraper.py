@@ -23,7 +23,7 @@ class Scraper(object):
     def init(self):
         self.updatePaths()
 
-#---------- Methods for file input - output
+# ---------- Methods for file input - output
 
     def write_txt(self, text, filePath):
         with open(filePath, 'w') as f:
@@ -48,7 +48,7 @@ class Scraper(object):
         else:
             df.to_csv(filePath, index=False)
 
-#---------- Methods for keeping time
+# ---------- Methods for keeping time
 
     def startTimer(self):
         self.startTime = time.time()
@@ -63,7 +63,7 @@ class Scraper(object):
         else:
             time.sleep(seconds)
 
-#---------- Methods for dynamically creating file paths and folders
+# ---------- Methods for dynamically creating file paths and folders
 
     def updatePaths(self):
         self.getDate()
@@ -88,7 +88,7 @@ class Scraper(object):
         print('Creating Folder: ' + directory)
         os.makedirs(directory)
 
-#---------- Methods for starting webdriver (aka browser) and opening / closing
+# ---------- Methods for starting webdriver (aka browser) and opening / closing
 
     def restartBrowser(self):
         print('\tRestarting browser')
@@ -107,8 +107,8 @@ class Scraper(object):
             prefs = {'profile.managed_default_content_settings.images':2}
             options.add_experimental_option('prefs', prefs)
         # Set the location
-        options.binary_location = '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
-        chromedriverPath ='/Users/jhelvy/Documents/chromedriver'
+        options.binary_location = '/opt/google/chrome/google-chrome'  # edit according to system
+        chromedriverPath = '/home/lucia/Documents/chromedriver'       # edit according to system
         self.browser = webdriver.Chrome(executable_path=chromedriverPath,
                                         options=options)
 
