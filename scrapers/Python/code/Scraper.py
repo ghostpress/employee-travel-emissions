@@ -129,7 +129,7 @@ class Scraper(object):
     def quitBrowser(self):
         self.browser.quit()
 
-#---------- Methods for browser navigation
+# ---------- Methods for browser navigation
 
     def browserToUrl(self):
         url = self.buildUrl()
@@ -148,7 +148,7 @@ class Scraper(object):
     def hasPageLoaded(self):
         return True
 
-#---------- Methods for getting data from the browser
+# ---------- Methods for getting data from the browser
 
     def getHtmlFromBrowser(self):
         return self.browser.page_source

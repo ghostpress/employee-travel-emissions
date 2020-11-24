@@ -14,12 +14,13 @@ from functions import*
 
 scraper = Scraper()
 scraper.openBrowser()  # must have chromedriver in Documents folder
+scraper.screenshot()
 
 # -----------------------------------------------------------------------------
 # Some common methods
 
 # Get the soup
-soup = scraper.getSoup()
+soup = scraper.getSoup('html')
 
 # Find all divs
 divs = soup.find_all('div')
