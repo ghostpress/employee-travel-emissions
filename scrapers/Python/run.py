@@ -14,7 +14,9 @@ from functions import*
 
 scraper = Scraper()
 scraper.openBrowser()  # must have chromedriver in Documents folder
-scraper.screenshot()
+
+# scraper.createFolder('data')  # run only once TODO: make cleaner
+scraper.screenshot('./data/temp.png')
 
 # -----------------------------------------------------------------------------
 # Some common methods
@@ -28,4 +30,7 @@ divs = soup.find_all('div')
 # Find a thing by a name
 div = soup.find('div', {'id' : 'idName'})
 div = soup.find('div', {'class' : 'className'})
+
+# Close the session
+scraper.quitBrowser()
 

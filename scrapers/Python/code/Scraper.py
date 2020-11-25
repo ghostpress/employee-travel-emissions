@@ -107,7 +107,7 @@ class Scraper(object):
             prefs = {'profile.managed_default_content_settings.images':2}
             options.add_experimental_option('prefs', prefs)
         # Set the location
-        options.binary_location = '/opt/google/chrome/google-chrome'  # edit according to system
+        options.binary_location = '/opt/google/chrome/google-chrome'  # edit according to system; TODO: better practice to put it into scrapers/Python?
         chromedriverPath = '/home/lucia/Documents/chromedriver'       # edit according to system
         self.browser = webdriver.Chrome(executable_path=chromedriverPath,
                                         options=options)
@@ -160,8 +160,8 @@ class Scraper(object):
     def getSoup(self, html):
         return BeautifulSoup(html, 'lxml')
 
-    def screenshot(self):
-        self.browser.save_screenshot('./screenshots/temp.png')
+    def screenshot(self, destination):
+        self.browser.save_screenshot(destination)
 
     def getPageData(self):
         return 42
