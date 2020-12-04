@@ -1,0 +1,87 @@
+---
+title: "Screenshot_CCL"
+author: "Olivia Henning"
+date: "11/29/2020"
+output: html_document
+---
+```
+This is to be used for screenshotting https://www.icao.int/environmental-protection/Carbonoffset/Pages/default.aspx 
+and scraping the information that we need. 
+```
+# Step 1: To use Docker, first signup here: https://hub.docker.com/signup
+
+# Step 2: Then download the Docker app
+
+
+# Step 3: # Install the RSelenium package
+```{r}
+install.packages('RSelenium')
+```
+
+# Step 4: Load Libraries
+```{r}
+library(RSelenium)
+library(rvest)
+```
+
+# Step 5: Run Docker app
+
+# Step 6: Open up a Terminal window and run the following commands:
+# docker run -d -p 4445:4444 selenium/standalone-chrome
+# docker ps
+
+# Step 7: Start the Chrome driver:
+```{r}
+remDr <- RSelenium::remoteDriver(remoteServerAddr = "localhost",
+                                 port = 4445L,
+                                 browserName = "chrome")
+remDr$open()
+```
+# Go to webpage
+```{r}
+remDr$navigate('https://applications.icao.int/icec')
+```
+
+# Take a screenshot to see if the browser has navigated correctly
+```{r}
+remDr$screenshot(display=T)
+```
+
+
+# Plug in Flight Codes and Click "Compute"
+```{r}
+#dat_concur = read.csv("Concur_Data.csv", header = TRUE) ## loading in CONCUR data
+
+## need to put this on a loop for all flight codes
+
+frombox <- remDr$findElement(using = 'xpath', value='//*[@id="mainContent"]/form/div[1]/div[2]/div/table/tbody/tr/th[2]/div/input')
+frombox$sendKeysToElement(list("BOS"))
+#bos <- remDr$findElement(using = "id", value="ui-id-2281")
+#bos$clickElement()
+
+#<li class="ui-menu-item" id="ui-id-2281" tabindex="-1">BOSTON,UNST                                              (BOS       )</li>
+
+tobox <- remDr$findElement(using = 'xpath', '//*[@id="mainContent"]/form/div[1]/div[2]/div/table/tbody/tr/th[3]/div/input')
+tobox$sendKeysToElement(list("WASHINGTON,UNST (DCA )"))
+
+
+compute_button <- remDr$findElement(using = 'xpath', '//*[@id="computeByInput"]')
+compute_button$clickElement()
+
+# https://www.computerworld.com/article/2971265/how-to-drive-a-web-browser-with-r-and-rselenium.html
+```
+
+# View screenshot to confirm
+```{r}
+remDr$screenshot(display=T)
+```
+
+# Get the page source code
+```{r}
+htmlCode <- remDr$getPageSource()[[1]]
+```
+
+# Parse the page source code using the rvest library
+```{r}
+html = read_html(htmlCode)
+```
