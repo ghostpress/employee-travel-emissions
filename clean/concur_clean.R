@@ -1,12 +1,17 @@
+setwd('./bu/sustainability/ccl/code/employee-travel-emissions/clean')
+
 # Read in the data:
 
-dat_raw = read.csv("concur_flights_raw_data.csv", header = TRUE)
+datRaw <- read.csv("concur_flights_raw_data.csv", header = TRUE)
+datRawFrame <- data.frame(datRaw)
+print(datRawFrame)
 
-# Subsetting
+# Column names got shifted down into values, new column names are "X", "X.1", ..., "X.19"
+# Rename these & remove the incorrectly formatted rows:
 
-years_of_interest <- 2017:2019 # ignoring 2020 for now
-dat_years
+newColNames <- datRawFrame[2,]
+print(newColNames)
 
-for(yr in years_of_interest) {
-  dat_years = subset(dat_raw, Departure_Date.contains(c(yr)))
+for(i in 1:19) {
+  
 }
