@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import requests
 import time
+import pandas as pd
 
 from scrapers.Python.code.chromedriver import chrome_driver
 
@@ -88,13 +89,20 @@ compute_button.click()  # test passed 12/23/20
 
 table_xpath = "/html/body/div[1]/form/div[2]/div/div/div[1]/div[1]/table/tbody/tr"
 time.sleep(15)
-table = driver.find_element_by_xpath(table_xpath)
+table = driver.find_elements_by_xpath(table_xpath)
 
-print(table)  # NOTE: doesn't seem to be a list?
-
-for row in table:  # FIXME: row = WebElement Object = not iterable
+for row in table:
     print(row)
     tds = row.find_elements_by_tag_name("th")
     table_results = [td.text for td in tds]
     print([td.text for td in tds])
     print(table_results)
+
+# Save computation to a CSV file
+# TODO: add flight number to table headers
+
+table_headers = ['Departure Airport', 'Arrival Airport', 'Number of Passengers', 'Cabin Class', 'Trip',
+                 'Aircraft Fuel Burn/Journey (KG^ab)', 'Passenger CO2/Journey (KG^c)']
+travel_emissions_df = pd.DataFrame(columns=table_headers)
+travel_emissions_df.loc[len(travel_emissions_df)] = table_results
+travel_emissions_df
