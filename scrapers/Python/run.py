@@ -21,11 +21,11 @@ html = driver.page_source
 soup = BeautifulSoup(html, 'html.parser')
 
 departure_input = driver.find_element_by_name('frm1')          # Get input for the departure field
+print(type(departure_input))
 departure_airport = input("What is your departure airport? ")  # TODO: automate to read from dataset
 print("Your airport of departure is: ", departure_airport)     # print test passed 12/22/20
 
 # Send departure info to ICAO calculator
-# TODO: make it a function
 
 departure_input.send_keys(departure_airport)
 departure_click_wait = WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.XPATH, "/html/body/ul[1]")))
