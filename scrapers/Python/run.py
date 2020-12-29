@@ -33,7 +33,6 @@ departure_items = departure_click_wait.find_elements_by_tag_name("li")
 
 # Print options from the drop-down menu, click the correct one
 # print test passed 12/23/20
-# TODO: automate to read from dataset & match departure name; also make it a function
 
 for index in range(len(departure_items)):
     text = (departure_items[index]).text

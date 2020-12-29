@@ -1,13 +1,13 @@
 # Import Libraries
 
-from bs4 import BeautifulSoup
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import Select
+# from bs4 import BeautifulSoup
+# from selenium.webdriver.common.keys import Keys
+# from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-import requests
-import time
+# import requests
+# import time
 import pandas as pd
 
 from scrapers.Python.code.chromedriver import chrome_driver
@@ -28,7 +28,7 @@ def send(input, airport, xpath, tag_name):
     airport : str
         The airport code, eg. BOS
     xpath : str
-        XPATH for the drop-down menu
+        The XPATH of the drop-down menu
     tag_name : str
     """
 
@@ -44,6 +44,7 @@ def send(input, airport, xpath, tag_name):
     element.click()
 
 
+# TODO: clean concur data to split location column into city?
 def match(airport, city, items):
     """A function to match the given airport code to the correct option in the drop-down menu.
 
@@ -68,3 +69,46 @@ def match(airport, city, items):
                 correct_index = i
 
     return correct_index
+
+
+def compute_click(id):
+    """A function to have the ICAO calculator compute the emissions.
+
+    Parameters
+    ----------
+    id : str
+        The id of the WebElement for the compute button
+    """
+
+    button = driver.find_element_by_id(id)
+    button.click()
+
+
+def extract_from_table(xpath, tag_name):
+    """A function to extract the emissions figures from the ICAO calculator table.
+
+    Parameters
+    ----------
+    xpath : str
+        The XPATH of the table
+    tag_name : str
+
+    :returns list
+    """
+
+    table = driver.find_elements_by_xpath(xpath)
+
+    for row in table:
+        tds = row.find_elements_by_tag_name(tag_name)
+        table_results = [td.text for td in tds]
+
+    return table_results
+
+
+def append_to_csv(data, emissions_list):
+    """A function to add the computed emissions to the rows of an existing data.csv file.
+    """
+
+def airports_from_csv(data):
+    """A function to read the rows of a data.csv file and extract the airport codes for computing emissions.
+    """
