@@ -42,6 +42,7 @@ def combine_codes(dep_list, arr_list):
 
     return trips
 
+
 def count_duplicates(trips):
     """A function to count the duplicates in a list of trips.
 

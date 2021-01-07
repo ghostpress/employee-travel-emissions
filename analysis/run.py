@@ -1,19 +1,24 @@
 # Import libraries and functions
 
 import pandas as pd
-import analysis.functions
+from functions import *
+import plotly.graph_objects as go
 
 # Read csv file into DataFrame
-df_subset = pd.read_csv('concur_flights_working_data_subset.csv')
+df_subset = pd.read_csv('concur_flights_working_data_subset.csv')  # subset to test
+
+# ------- Functions for counting and displaying in a table the most frequent routes in the data -------
 
 # Using the functions, get the codes into a single list
 
-dep_list = analysis.airport_codes_from_df('Departure Station Code')
-arr_list = analysis.airport_codes_from_df('Arrival Station Code')
+dep_list = airport_codes_from_df(df_subset, 'Departure Station Code')
+arr_list = airport_codes_from_df(df_subset, 'Arrival Station Code')
 
-trips = analysis.combine_codes(dep_list, arr_list)
+trips = combine_codes(dep_list, arr_list)
 
 # Now count the duplicate trips
-print(analysis.count_duplicates(trips))
+print(count_duplicates(trips))  # print test passed 1/7/21
+
+# Make a table
 
 
