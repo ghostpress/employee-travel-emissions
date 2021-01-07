@@ -23,3 +23,6 @@
 
 # Ignore the directory associated with the PyCharm IDE:
 .idea/
+
+# Ignore the directory associated with Jupyter Notebooks:
+.ipynb_checkpoints/

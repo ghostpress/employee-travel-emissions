@@ -38,7 +38,7 @@ def combine_codes(dep_list, arr_list):
     trips = []
 
     for index in range(len(dep_list)):
-        trips.append(dep_list[index] + " " + arr_list[index])
+        trips.append(dep_list[index] + " to " + arr_list[index])
 
     return trips
 
