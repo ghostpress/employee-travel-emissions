@@ -9,16 +9,16 @@ from selenium.webdriver.common.by import By
 # import requests
 # import time
 import pandas as pd
+import numpy as np
 
 from scrapers.Python.code.chromedriver import chrome_driver
 
 # Initiate driver
 link = 'https://applications.icao.int/icec'
 driver = chrome_driver(link)
-city = ""  # TODO: read from data
 
 
-def send(input, airport, xpath, tag_name):
+def send(input, airport, city, xpath, tag_name):
     """A function to send airport info to the online ICAO calculator.
 
     Parameters
@@ -44,7 +44,6 @@ def send(input, airport, xpath, tag_name):
     element.click()
 
 
-# TODO: clean concur data to split location column into city?
 def match(airport, city, items):
     """A function to match the given airport code to the correct option in the drop-down menu.
 
@@ -105,10 +104,56 @@ def extract_from_table(xpath, tag_name):
     return table_results
 
 
-def append_to_csv(data, emissions_list):
+def append_to_csv(csv, emissions_list):
     """A function to add the computed emissions to the rows of an existing data.csv file.
     """
 
-def airports_from_csv(data):
+    data = pd.read_csv(csv)
+
+    trips = airports_from_csv(data)  # Get the airport codes using helper function
+    # TODO: finish this
+
+
+def airports_from_csv(csv):
     """A function to read the rows of a data.csv file and extract the airport codes for computing emissions.
+
+    Parameters
+    ----------
+    csv : str
+        file path of the data.csv file from which to extract airport departure & arrival codes
+
+    :returns list
     """
+
+    data = pd.read_csv(csv)  # Create dataframe from data.csv
+
+    dep_list = data['Departure Station Code'].values.tolist()  # Extract departure codes column into a list
+    arr_list = data['Arrival Station Code'].values.tolist()    # Extract arrival codes column into a list
+
+    trips_list = np.array((dep_list, arr_list))  # Combine the two lists into one
+    trips_list = trips_list.T  # Transpose the list to get [[dep, arr]]
+
+    return trips_list
+
+
+def cities_from_csv(csv):
+    """A function to read the rows of a data.csv file and extract the cities for computing emissions.
+
+    Parameters
+    ----------
+    csv : str
+        file path of the data.csv file from which to extract airport departure & arrival codes
+
+    :returns list
+    """
+
+    data = pd.read_csv(csv)  # Create dataframe from data.csv
+
+    dep_city_list = data['Departure City']  # Extract departure cities column into a list
+    arr_city_list = data['Arrival City']    # Extract arrival cities column into a list
+
+    cities_list = np.array((dep_city_list, arr_city_list))  # Combine the two lists into one
+    cities_list = cities_list.T  # Transpose the list to get [[dep, arr]]
+
+    return cities_list
+

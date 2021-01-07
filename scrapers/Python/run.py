@@ -55,7 +55,7 @@ print("Your airport of destination is: ", destination_airport)     # print test 
 # Send destination info to ICAO
 
 destination_input.send_keys(destination_airport)
-time.sleep(2)  # TODO: need this? if not, remove newline below
+time.sleep(2)
 
 destination_click_wait = WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.XPATH, "/html/body/ul[2]")))
 destination_items = destination_click_wait.find_elements_by_tag_name("li")
@@ -74,10 +74,10 @@ else:
     destination_index = input("Which of the options is your correct destination airport code?\n"
                               "Enter 1 for first, 2 for second, etc. ")
 
-time.sleep(5)  # TODO: need this?
+time.sleep(5)
 destination_element = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, "/html/body/ul[2]/li[" + destination_index + "]")))
 destination_element.click()  # test passed 12/23/20
-time.sleep(6)  # TODO: need this?
+time.sleep(6)
 
 # Compute emissions results
 
