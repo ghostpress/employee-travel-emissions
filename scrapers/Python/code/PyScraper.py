@@ -2,13 +2,13 @@
 
 from bs4 import BeautifulSoup
 # from selenium.webdriver.common.keys import Keys
-# from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import Select
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 # import requests
-# import time
+import time
 import pandas as pd
 import numpy as np
 
@@ -16,36 +16,34 @@ from code.chromedriver import chrome_driver
 
 
 class PyScraper:
+    # Global attributes / fields: website link, driver object, path to data.csv, and dataframe
     global link
     global driver
     global data_path
     global df
 
     def __init__(self, url, path):
+
         # Initiate the driver
 
         link = url
-        driver = chrome_driver(link)
+        self.driver = chrome_driver(link)
         data_path = path
 
         # Load web elements into BeautifulSoup
 
-        html = driver.page_source
+        html = self.driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
 
         # Get dataframe from csv in data_path
         self.df = pd.read_csv(data_path)
 
     @staticmethod
-    def test_class(self):  # TODO: before final production version, delete this
-        return 0
-
-    @staticmethod
-    def get_driver():
+    def get_driver():  # TODO: delete
         return driver
 
     @staticmethod
-    def get_html(self):
+    def get_html(self):  # TODO: delete
         return driver.page_source
 
     def extract_column(self, col_name):
@@ -78,14 +76,30 @@ class PyScraper:
         # Entries always in the following format: CityName, STATENAME, COUNTRYABBREV
         cities = []
 
-        for item in entries:              # For each item in the entire list of entries,
+        for item in entries:  # For each item in the entire list of entries,
 
-            index = item.find(',')        # find the index of the first comma
+            index = item.find(',')  # find the index of the first comma
             cities.append(item[0:index])  # append the substring containing the city name to the list
 
         return cities
 
+    def set_trip_type(self, xpath, type):
+        """A function to set and click the correct trip type in the calculator.
+
+        Parameters
+        ----------
+        xpath : str
+            The XPATH of the trip type drop-down menu
+        type : str
+            The desired trip type
+        """
+
+        select = Select(self.driver.find_element_by_xpath(xpath))
+        select.select_by_visible_text(type)
+        time.sleep(2)  # Selenium runs very quickly, website can't always load elements in time
+
     def match(self, airport, city, items):
+        # TODO: remove airport field? maybe use both to match
         """A function to match the given airport code to the correct option in the drop-down menu.
 
         Parameters
@@ -100,22 +114,29 @@ class PyScraper:
         :returns int
         """
 
-        if len(items) == 1:
+        items_str = []
+        for item in items:
+            items_str.append(item.text)
+
+        correct_index = -1
+
+        if len(items_str) == 1:
             correct_index = 1
         else:
-            city.upper()
-            for i in range(len(items)):
-                if city in items[i]:
-                    correct_index = i
+            to_match = self.parse_cities(items_str)  # extract just the cities from each row in the menu
+
+            for i in range(len(to_match)):
+                if to_match[i] == city.upper():
+                    correct_index = i + 1  # web menu lists start from index 1 for some dumb reason
 
         return correct_index
 
-    def send(self, input, airport, city, xpath, tag_name):
+    def send(self, name, airport, city, xpath, tag_name):
         """A function to send airport info to the online ICAO calculator.
 
         Parameters
         ----------
-        input : WebElement
+        name : str
             The input to the driver, eg. 'frm1' for departure
         airport : str
             The airport code, eg. BOS
@@ -124,18 +145,23 @@ class PyScraper:
         tag_name : str
         """
 
+        input = self.driver.find_element_by_name(name)
         input.send_keys(airport)
-        click_wait = WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.XPATH, xpath)))
+        time.sleep(2)
+
+        click_wait = WebDriverWait(self.driver, 15).until(EC.visibility_of_element_located((By.XPATH, xpath)))
         menu_items = click_wait.find_elements_by_tag_name(tag_name)  # list of drop-down menu options
+        # print(type(menu_items))  # list; FIXME: call to match() raises 'WebElement' not iterable error
+        # print(type(menu_items[0]))  # WebElement; should be str
 
         # Click the correct option, using the match() helper function
 
-        index = match(airport, city, menu_items)
-        element = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.XPATH, xpath + "/" + tag_name + "[" + index + "]")))
+        index = self.match(airport, city, menu_items)
+        element = WebDriverWait(self.driver, 15).until(
+            EC.element_to_be_clickable((By.XPATH, xpath + "/" + tag_name + "[" + str(index) + "]")))
         element.click()
 
-    def compute_click(self, id):
+    def compute(self, id):
         """A function to have the ICAO calculator compute the emissions.
 
         Parameters
@@ -144,7 +170,7 @@ class PyScraper:
             The id of the WebElement for the compute button
         """
 
-        button = driver.find_element_by_id(id)
+        button = self.driver.find_element_by_id(id)
         button.click()
 
     def extract_from_table(self, xpath, tag_name):
@@ -159,7 +185,9 @@ class PyScraper:
         :returns list
         """
 
-        table = driver.find_elements_by_xpath(xpath)
+        time.sleep(5)  # Was 15, still works so far 1/8/21
+
+        table = self.driver.find_elements_by_xpath(xpath)
 
         for row in table:
             tds = row.find_elements_by_tag_name(tag_name)
@@ -167,53 +195,26 @@ class PyScraper:
 
         return table_results
 
-    def append_to_csv(self, csv, emissions_list):
+    def append_to_csv(self, emissions_list):
         """A function to add the computed emissions to the rows of an existing data.csv file.
-        """
-
-        data = pd.read_csv(csv)
-
-        trips = airports_from_csv(data)  # Get the airport codes using helper function
-        # TODO: finish this
-
-    def airports_from_csv(self, csv):
-        """A function to read the rows of a data.csv file and extract the airport codes for computing emissions.
 
         Parameters
         ----------
-        csv : str
-            file path of the data.csv file from which to extract airport departure & arrival codes
-
-        :returns list
+        emissions_list : list
+            The list of calculated emissions corresponding to each trip
         """
 
-        data = pd.read_csv(csv)  # Create dataframe from data.csv
+        self.df['Passenger CO2/Journey (KG^c)'] = emissions_list
+        print(self.df)
 
-        dep_list = data['Departure Station Code'].values.tolist()  # Extract departure codes column into a list
-        arr_list = data['Arrival Station Code'].values.tolist()  # Extract arrival codes column into a list
-
-        trips_list = np.array((dep_list, arr_list))  # Combine the two lists into one
-        trips_list = trips_list.T  # Transpose the list to get [[dep, arr]]
-
-        return trips_list
-
-    def cities_from_csv(self, csv):
-        """A function to read the rows of a data.csv file and extract the cities for computing emissions.
+    def clear_inputs(self, name):
+        """ A function to clear the inputs on the page, so that the next iteration can be entered.
 
         Parameters
         ----------
-        csv : str
-            file path of the data.csv file from which to extract airport departure & arrival codes
-
-        :returns list
+        name : The name of the input to clear.
         """
 
-        data = pd.read_csv(csv)  # Create dataframe from data.csv
+        input_to_clear = self.driver.find_element_by_name(name)
+        input_to_clear.clear()
 
-        dep_city_list = data['Departure City']  # Extract departure cities column into a list
-        arr_city_list = data['Arrival City']  # Extract arrival cities column into a list
-
-        cities_list = np.array((dep_city_list, arr_city_list))  # Combine the two lists into one
-        cities_list = cities_list.T  # Transpose the list to get [[dep, arr]]
-
-        return cities_list
