@@ -1,18 +1,12 @@
 # Import Libraries
 
 from bs4 import BeautifulSoup
-# from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
-from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from csv import reader
-from csv import writer
-# import requests
 import time
 import pandas as pd
-import numpy as np
 
 from code.chromedriver import chrome_driver
 
@@ -255,7 +249,6 @@ class PyScraper:
 
         for index in range(len(tics)):
             for i, row in convert_guide.iterrows():
-                # print(convert_guide.at[i, "Field in Sheet"])
                 if tics[index] == convert_guide.at[i, "Field in Sheet"]:
 
                     self.df.at[index, 'ICAO Trip Category'] = convert_guide.at[i, "Change to"]

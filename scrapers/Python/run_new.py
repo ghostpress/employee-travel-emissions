@@ -50,7 +50,6 @@ for index in range(len(dep_list)):
     subset_scrape.compute()
     table = subset_scrape.extract_from_table("/html/body/div[1]/form/div[2]/div/div/div[1]/div[1]/table/tbody/tr", "th")
     emissions.append(table[6])
-    print(len(emissions))
 
     # Clear departure and arrival inputs for next iteration
 
