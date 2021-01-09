@@ -15,7 +15,7 @@ subset_scrape = PyScraper(link, subset_path)
 # Get the list of ticket classes
 tic_list = subset_scrape.extract_column('Class of Service')
 
-# Put the ticket class into the correct category for ICAO
+# Put the ticket class list into the correct categories for ICAO
 tic_list_icao = subset_scrape.convert_tickets(tic_list, flight_types_path)
 
 # Get the departure and arrival airport codes
@@ -34,16 +34,20 @@ emissions = []
 
 for index in range(len(dep_list)):
 
-    # Send the codes to the ICAO calculator
+    # Set the trip type (all one way)
+    subset_scrape.set_trip_type('/html/body/div[1]/form/div[1]/div[1]/div/table/tbody/tr/td[1]/select', 'One Way')
 
-    subset_scrape.set_trip_type("/html/body/div[1]/form/div[1]/div[1]/div/table/tbody/tr/td[1]/select", "One Way")
-    subset_scrape.set_trip_class()
+    # Set the cabin class category
+    subset_scrape.set_cabin_class('/html/body/div[1]/form/div[1]/div[1]/div/table/tbody/tr/td[2]/select', tic_list_icao[index])
+
+    # Send the airport codes to the ICAO calculator
+
     subset_scrape.send('frm1', dep_list[index], dep_city[index], '/html/body/ul[1]', 'li')
     subset_scrape.send('to1', arr_list[index], arr_city[index], '/html/body/ul[2]', 'li')
 
     # Compute emissions and extract the resulting number from the website
 
-    subset_scrape.compute("computeByInput")
+    subset_scrape.compute()
     table = subset_scrape.extract_from_table("/html/body/div[1]/form/div[2]/div/div/div[1]/div[1]/table/tbody/tr", "th")
     emissions.append(table[6])
     print(len(emissions))
@@ -55,6 +59,6 @@ for index in range(len(dep_list)):
 
     compare_csv = subset_scrape.append_to_csv(emissions[index], index, 'Emissions.Py')
 
-
-# TODO: account for trip class!!
 # TODO: extract unique trips into another data.csv -> compute emissions & print -> back-fill matches
+
+print("All done.")

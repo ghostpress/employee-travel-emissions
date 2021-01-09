@@ -59,10 +59,11 @@ class PyScraper:
         :returns list
         """
 
-        list = self.df[col_name].values.tolist()
-        return list
+        col_elems = self.df[col_name].values.tolist()
+        return col_elems
 
-    def parse_cities(self, entries):
+    @staticmethod
+    def parse_cities(entries):
         """A function to parse the city name from the longer entry in the corresponding column.
         For example, Boston is listed as 'Boston, MASSACHUSETTS, US', so this function returns just
         'Boston'.
@@ -100,8 +101,22 @@ class PyScraper:
         select.select_by_visible_text(type)
         time.sleep(2)  # Selenium runs very quickly, website can't always load elements in time
 
+    def set_cabin_class(self, xpath, cat):
+        """A function to set and click the correct cabin class in the calculator.
+
+        Parameters
+        ----------
+        xpath : str
+            The XPATH of the cabin class drop-down menu
+        cat : str
+            The desired cabin class category, ie. Economy or Premium
+        """
+
+        select = Select(self.driver.find_element_by_xpath(xpath))
+        select.select_by_visible_text(cat)
+        time.sleep(2)
+
     def match(self, airport, city, items):
-        # TODO: remove airport field? maybe use both to match
         """A function to match the given airport code to the correct option in the drop-down menu.
 
         Parameters
@@ -142,6 +157,8 @@ class PyScraper:
             The input to the driver, eg. 'frm1' for departure
         airport : str
             The airport code, eg. BOS
+        city : str
+            The city corresponding to the airport code
         xpath : str
             The XPATH of the drop-down menu
         tag_name : str
@@ -153,8 +170,6 @@ class PyScraper:
 
         click_wait = WebDriverWait(self.driver, 15).until(EC.visibility_of_element_located((By.XPATH, xpath)))
         menu_items = click_wait.find_elements_by_tag_name(tag_name)  # list of drop-down menu options
-        # print(type(menu_items))  # list; FIXME: call to match() raises 'WebElement' not iterable error
-        # print(type(menu_items[0]))  # WebElement; should be str
 
         # Click the correct option, using the match() helper function
 
@@ -163,16 +178,12 @@ class PyScraper:
             EC.element_to_be_clickable((By.XPATH, xpath + "/" + tag_name + "[" + str(index) + "]")))
         element.click()
 
-    def compute(self, id):
+    def compute(self):
         """A function to have the ICAO calculator compute the emissions.
-
-        Parameters
-        ----------
-        id : str
-            The id of the WebElement for the compute button
         """
 
-        button = self.driver.find_element_by_id(id)
+        compute_id = "computeByInput"
+        button = self.driver.find_element_by_id(compute_id)
         button.click()
 
     def extract_from_table(self, xpath, tag_name):
