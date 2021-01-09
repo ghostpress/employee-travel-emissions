@@ -49,3 +49,4 @@ for index in range(len(dep_list)):
 
 
 # TODO: account for trip class!!
+# TODO: extract unique trips into another data.csv -> compute emissions & print -> back-fill matches
