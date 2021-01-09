@@ -7,6 +7,8 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from csv import reader
+from csv import writer
 # import requests
 import time
 import pandas as pd
@@ -195,17 +197,21 @@ class PyScraper:
 
         return table_results
 
-    def append_to_csv(self, emissions_list):
-        """A function to add the computed emissions to the rows of an existing data.csv file.
+    def append_to_csv(self, new_val, row, col):
+        """A function to add a value to a csv file in the specified row and column.
 
         Parameters
         ----------
-        emissions_list : list
-            The list of calculated emissions corresponding to each trip
+        new_val : int
+            The new value to append in the correct column and row
+        row : int
+            The row in which to insert the new value
+
+        :returns str
         """
 
-        self.df['Passenger CO2/Journey (KG^c)'] = emissions_list
-        print(self.df)
+        self.df.at[row, col] = new_val
+        self.df.to_csv('output2.csv', index=False)
 
     def clear_inputs(self, name):
         """ A function to clear the inputs on the page, so that the next iteration can be entered.
