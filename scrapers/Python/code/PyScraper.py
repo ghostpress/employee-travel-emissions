@@ -214,13 +214,41 @@ class PyScraper:
         self.df.to_csv('output2.csv', index=False)
 
     def clear_inputs(self, name):
-        """ A function to clear the inputs on the page, so that the next iteration can be entered.
+        """A function to clear the inputs on the page, so that the next iteration can be entered.
 
         Parameters
         ----------
-        name : The name of the input to clear.
+        name : str
+            The name of the input to clear.
         """
 
         input_to_clear = self.driver.find_element_by_name(name)
         input_to_clear.clear()
 
+    def convert_tickets(self, tics, format_file):
+        """A function to convert the ticket class names into the matching ICAO categories: Economy or Premium.
+        Ticket classes are not standard across airlines, and there are many different names for the same class.
+
+        Parameters
+        ----------
+        tics : list
+            The list of ticket classes taken from the dataset.
+        format_file : str
+            The path to the file which contains the conversions to ICAO categories.
+
+        :returns list
+        """
+
+        convert_guide = pd.read_csv(format_file)  # makes the file into a dataframe for easy access
+        self.df['ICAO Trip Category'] = ''
+
+        for index in range(len(tics)):
+            for i, row in convert_guide.iterrows():
+                # print(convert_guide.at[i, "Field in Sheet"])
+                if tics[index] == convert_guide.at[i, "Field in Sheet"]:
+
+                    self.df.at[index, 'ICAO Trip Category'] = convert_guide.at[i, "Change to"]
+
+        return self.df['ICAO Trip Category'].tolist()
+
+    # def extract_column_uniques(self):  # TODO: write for later

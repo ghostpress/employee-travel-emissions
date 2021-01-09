@@ -5,11 +5,18 @@ from code.PyScraper import PyScraper
 link = 'https://applications.icao.int/icec'
 
 # Data paths - edit as needed according to system
-subset_path  = 'data/concur_flights_working_data_subset.csv'
-full_path    = 'data/concur_flights_raw_data.csv'
-compare_path = 'data/emissions_compare.csv'
+subset_path       = 'data/concur_flights_working_data_subset.csv'
+full_path         = 'data/concur_flights_raw_data.csv'
+compare_path      = 'data/emissions_compare.csv'
+flight_types_path = 'data/flight_types.csv'
 
-subset_scrape = PyScraper(link, compare_path)
+subset_scrape = PyScraper(link, subset_path)
+
+# Get the list of ticket classes
+tic_list = subset_scrape.extract_column('Class of Service')
+
+# Put the ticket class into the correct category for ICAO
+tic_list_icao = subset_scrape.convert_tickets(tic_list, flight_types_path)
 
 # Get the departure and arrival airport codes
 dep_list = subset_scrape.extract_column('Departure Station Code')
@@ -30,6 +37,7 @@ for index in range(len(dep_list)):
     # Send the codes to the ICAO calculator
 
     subset_scrape.set_trip_type("/html/body/div[1]/form/div[1]/div[1]/div/table/tbody/tr/td[1]/select", "One Way")
+    subset_scrape.set_trip_class()
     subset_scrape.send('frm1', dep_list[index], dep_city[index], '/html/body/ul[1]', 'li')
     subset_scrape.send('to1', arr_list[index], arr_city[index], '/html/body/ul[2]', 'li')
 
