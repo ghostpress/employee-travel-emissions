@@ -1,6 +1,7 @@
 # Import libraries, functions, and PyScraper class
 
 from code.PyScraper import PyScraper
+from code import functions_new
 
 link = 'https://applications.icao.int/icec'
 
@@ -11,6 +12,7 @@ compare_path      = 'data/emissions_compare.csv'
 flight_types_path = 'data/flight_types.csv'
 
 subset_scrape = PyScraper(link, subset_path)
+subset_scrape.extract_uniques()
 
 # Get the list of ticket classes
 tic_list = subset_scrape.extract_column('Class of Service')
@@ -47,6 +49,7 @@ for index in range(len(dep_list)):
 
     # Compute emissions and extract the resulting number from the website
 
+    print("Computing: " + str(index + 1) + " /" + str(len(dep_list)) + " ...")
     subset_scrape.compute()
     table = subset_scrape.extract_from_table("/html/body/div[1]/form/div[2]/div/div/div[1]/div[1]/table/tbody/tr", "th")
     emissions.append(table[6])

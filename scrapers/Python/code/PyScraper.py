@@ -3,7 +3,7 @@
 from bs4 import BeautifulSoup
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.by import By
 import time
 import pandas as pd
@@ -15,10 +15,10 @@ class PyScraper:
     # Global attributes / fields: website link, driver object, path to data.csv, and dataframe
     global link
     global driver
-    global data_path
-    global df
+    global data_path  # TODO: move to functions?
+    global df         # TODO: move to functions?
 
-    def __init__(self, url, path):
+    def __init__(self, url, path):  # TODO: initialize w/ df? or have separate constructor?
 
         # Initiate the driver
 
@@ -35,20 +35,16 @@ class PyScraper:
         self.df = pd.read_csv(data_path)
 
     @staticmethod
-    def get_driver():  # TODO: delete
-        return driver
+    def get_df():
+        return df
 
-    @staticmethod
-    def get_html(self):  # TODO: delete
-        return driver.page_source
-
-    def extract_column(self, col_name):
+    def extract_column(self, col_name):  # TODO: move to functions?
         """A function to extract the items in a specified column in the data.
 
         Parameters
         ----------
         col_name : str
-            The name of the column from which to extract the items.
+            The name of the column from which to extract the items
 
         :returns list
         """
@@ -59,8 +55,8 @@ class PyScraper:
     @staticmethod
     def parse_cities(entries):
         """A function to parse the city name from the longer entry in the corresponding column.
-        For example, Boston is listed as 'Boston, MASSACHUSETTS, US', so this function returns just
-        'Boston'.
+        For example, in the dataset Boston is listed as 'Boston, MASSACHUSETTS, US'; In the ICAO drop-down,
+        Boston is listed as 'BOSTON, UNST (BOS )'. In both cases, this function returns just 'Boston'.
 
         Parameters
         ----------
@@ -75,7 +71,7 @@ class PyScraper:
 
         for item in entries:  # For each item in the entire list of entries,
 
-            index = item.find(',')  # find the index of the first comma
+            index = item.find(',')        # find the index of the first comma
             cities.append(item[0:index])  # append the substring containing the city name to the list
 
         return cities
@@ -110,13 +106,11 @@ class PyScraper:
         select.select_by_visible_text(cat)
         time.sleep(2)
 
-    def match(self, airport, city, items):
-        """A function to match the given airport code to the correct option in the drop-down menu.
+    def match(self, city, items):
+        """A function to match the given city to the correct option in the drop-down menu.
 
         Parameters
         ----------
-        airport : str
-            The airport code, eg. BOS
         city : str
             The full name of the city, eg. Boston
         items : list
@@ -162,19 +156,18 @@ class PyScraper:
         input.send_keys(airport)
         time.sleep(2)
 
-        click_wait = WebDriverWait(self.driver, 15).until(EC.visibility_of_element_located((By.XPATH, xpath)))
+        click_wait = WebDriverWait(self.driver, 15).until(ec.visibility_of_element_located((By.XPATH, xpath)))
         menu_items = click_wait.find_elements_by_tag_name(tag_name)  # list of drop-down menu options
 
         # Click the correct option, using the match() helper function
 
         index = self.match(airport, city, menu_items)
         element = WebDriverWait(self.driver, 15).until(
-            EC.element_to_be_clickable((By.XPATH, xpath + "/" + tag_name + "[" + str(index) + "]")))
+            ec.element_to_be_clickable((By.XPATH, xpath + "/" + tag_name + "[" + str(index) + "]")))
         element.click()
 
     def compute(self):
-        """A function to have the ICAO calculator compute the emissions.
-        """
+        """A function to have the ICAO calculator compute the emissions."""
 
         compute_id = "computeByInput"
         button = self.driver.find_element_by_id(compute_id)
@@ -216,7 +209,7 @@ class PyScraper:
         """
 
         self.df.at[row, col] = new_val
-        self.df.to_csv('output2.csv', index=False)
+        self.df.to_csv('output3.csv', index=False)
 
     def clear_inputs(self, name):
         """A function to clear the inputs on the page, so that the next iteration can be entered.
@@ -224,35 +217,13 @@ class PyScraper:
         Parameters
         ----------
         name : str
-            The name of the input to clear.
+            The name of the input to clear
         """
 
         input_to_clear = self.driver.find_element_by_name(name)
         input_to_clear.clear()
 
-    def convert_tickets(self, tics, format_file):
-        """A function to convert the ticket class names into the matching ICAO categories: Economy or Premium.
-        Ticket classes are not standard across airlines, and there are many different names for the same class.
 
-        Parameters
-        ----------
-        tics : list
-            The list of ticket classes taken from the dataset.
-        format_file : str
-            The path to the file which contains the conversions to ICAO categories.
 
-        :returns list
-        """
 
-        convert_guide = pd.read_csv(format_file)  # makes the file into a dataframe for easy access
-        self.df['ICAO Trip Category'] = ''
 
-        for index in range(len(tics)):
-            for i, row in convert_guide.iterrows():
-                if tics[index] == convert_guide.at[i, "Field in Sheet"]:
-
-                    self.df.at[index, 'ICAO Trip Category'] = convert_guide.at[i, "Change to"]
-
-        return self.df['ICAO Trip Category'].tolist()
-
-    # def extract_column_uniques(self):  # TODO: write for later
