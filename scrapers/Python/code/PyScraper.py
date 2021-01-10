@@ -160,7 +160,7 @@ class PyScraper:
 
         # Click the correct option, using the match() helper function
 
-        index = self.match(airport, city, menu_items)
+        index = self.match(city, menu_items)
         element = WebDriverWait(self.driver, 15).until(
             ec.element_to_be_clickable((By.XPATH, xpath + "/" + tag_name + "[" + str(index) + "]")))
         element.click()

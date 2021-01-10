@@ -12,16 +12,16 @@ compare_path      = 'data/emissions_compare.csv'
 flight_types_path = 'data/flight_types.csv'
 
 subset_scrape = PyScraper(link, subset_path)
-uniqs = functions_new.extract_uniques(subset_scrape.get_df())
-print(uniqs)
+# uniqs = functions_new.extract_uniques(subset_scrape.get_df())
+# print(uniqs)
 
-print('No longer testing')
+# print('No longer testing')
 
 # Get the list of ticket classes
 tic_list = subset_scrape.extract_column('Class of Service')
 
 # Put the ticket class list into the correct categories for ICAO
-tic_list_icao = subset_scrape.convert_tickets(tic_list, flight_types_path)
+tic_list_icao = functions_new.convert_tickets(subset_scrape.get_df(), tic_list, flight_types_path)
 
 # Get the departure and arrival airport codes
 dep_list = subset_scrape.extract_column('Departure Station Code')
