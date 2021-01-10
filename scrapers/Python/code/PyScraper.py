@@ -15,16 +15,16 @@ class PyScraper:
     # Global attributes / fields: website link, driver object, path to data.csv, and dataframe
     global link
     global driver
-    global data_path  # TODO: move to functions?
-    global df         # TODO: move to functions?
+    global data_path
+    global df
 
-    def __init__(self, url, path):  # TODO: initialize w/ df? or have separate constructor?
+    def __init__(self, url, path):
 
         # Initiate the driver
 
         link = url
         self.driver = chrome_driver(link)
-        data_path = path
+        self.data_path = path
 
         # Load web elements into BeautifulSoup
 
@@ -32,7 +32,7 @@ class PyScraper:
         soup = BeautifulSoup(html, 'html.parser')
 
         # Get dataframe from csv in data_path
-        self.df = pd.read_csv(data_path)
+        self.df = pd.read_csv(self.data_path)
 
     def get_df(self):
         return self.df
@@ -84,6 +84,8 @@ class PyScraper:
             The XPATH of the trip type drop-down menu
         type : str
             The desired trip type
+
+        :returns None
         """
 
         select = Select(self.driver.find_element_by_xpath(xpath))
@@ -99,6 +101,8 @@ class PyScraper:
             The XPATH of the cabin class drop-down menu
         cat : str
             The desired cabin class category, ie. Economy or Premium
+
+        :returns None
         """
 
         select = Select(self.driver.find_element_by_xpath(xpath))
@@ -149,6 +153,8 @@ class PyScraper:
         xpath : str
             The XPATH of the drop-down menu
         tag_name : str
+
+        :returns None
         """
 
         input = self.driver.find_element_by_name(name)
@@ -166,7 +172,10 @@ class PyScraper:
         element.click()
 
     def compute(self):
-        """A function to have the ICAO calculator compute the emissions."""
+        """A function to have the ICAO calculator compute the emissions.
+
+        :returns None
+        """
 
         compute_id = "computeByInput"
         button = self.driver.find_element_by_id(compute_id)
@@ -208,7 +217,7 @@ class PyScraper:
         """
 
         self.df.at[row, col] = new_val
-        self.df.to_csv('output4.csv', index=False)
+        self.df.to_csv(self.data_path, index=False)  # FIXME: need it to edit the original file
 
     def clear_inputs(self, name):
         """A function to clear the inputs on the page, so that the next iteration can be entered.
@@ -217,6 +226,8 @@ class PyScraper:
         ----------
         name : str
             The name of the input to clear
+
+        :returns None
         """
 
         input_to_clear = self.driver.find_element_by_name(name)

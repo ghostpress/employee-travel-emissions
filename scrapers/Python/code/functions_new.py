@@ -52,10 +52,40 @@ def extract_uniques(df_orig):
     tickets = convert_tickets(df_copy, df_copy['Class of Service'].values.tolist(), 'data/flight_types.csv')
 
     # Fill in that column
-    df_copy['Trip Info Combined'] = df_copy['Departure Station Code'] + " " + df_copy['Arrival Station Code'] + " " + df_copy['ICAO Trip Category']
-    df_uniques = df_copy.drop_duplicates(subset='Trip Info Combined')  # drop the duplicates
+    df_copy['Trip Info Combined'] = df_copy['Departure Station Code'] + " " + df_copy['Arrival Station Code'] + " " + \
+                                    df_copy['ICAO Trip Category']
 
-    return df_uniques.to_csv('unique_trips.csv', index=False)  # FIXME: returns 'None' & also the csv file is in the working directory, not /data/
+    df_uniques = df_copy.drop_duplicates(subset='Trip Info Combined')  # Drop the duplicates
+    df_uniques.to_csv('data/unique_trips.csv', index=False)  # Write to a csv file in the data folder
+    return 'data/unique_trips.csv'
 
 
-# def backfill_from_uniques():
+def fill_from_uniques(uniques_path, all_path):
+    """A function to backfill duplicate emissions calculations from a file containing the unique trips and their emissions.
+
+    Parameters
+    ----------
+    uniques_path : str
+        The path to the file containing the unique trips and emissions calculations
+    all_path : str
+        The path to the file containing all the data to be back-filled
+
+    :returns None
+    """
+
+    # Create dataframes from the csv files for easy iteration
+    uniques = pd.read_csv(uniques_path)
+    all_data = pd.read_csv(all_path)
+
+    data_copy = all_data.copy()  # Create a copy of the data
+
+    data_copy['Emissions'] = ''  # Create an empty column in the data file for the emissions calculations
+
+    for i, row in data_copy.iterrows():
+        for j, row_ in uniques.iterrows():
+            if data_copy.at[i, 'Trip Info Combined'] == uniques.at[j, 'Trip Info Combined']:  # if the trip info matches
+                data_copy.at[i, 'Emissions'] = uniques.at[j, 'Emissions']                     # copy the value in
+
+    data_copy.to_csv('data/filled.csv')
+
+    print('Duplicate trips back-filled.')
