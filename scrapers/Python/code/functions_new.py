@@ -31,33 +31,31 @@ def convert_tickets(df, tickets, format_file):
     return df['ICAO Trip Category'].tolist()
 
 
-def extract_uniques(df_orig):  # TODO: make it return a df
+def extract_uniques(df_orig):
     """A function to extract the unique trips according to departure and arrival airport codes, and cabin class.
+    The output is printed to a new csv file.
 
     Parameters
     ----------
     df_orig : pd.DataFrame
         The dataframe holding the original data from which to extract unique trips
 
-    :returns list
+    :returns str
     """
 
     df_copy = df_orig.copy()  # Make a copy of the dataframe currently holding all data
 
-    # Create a new column combining the trip info: 'DEP ARR Class'
-
+    # Create a new column combining the trip info: 'DEP ARR Class' (blank for now)
     df_copy['Trip Info Combined'] = ''
 
-    # Call convert_tickets() first TODO: make this cleaner
+    # Call helper function convert_tickets()
     tickets = convert_tickets(df_copy, df_copy['Class of Service'].values.tolist(), 'data/flight_types.csv')
 
+    # Fill in that column
     df_copy['Trip Info Combined'] = df_copy['Departure Station Code'] + " " + df_copy['Arrival Station Code'] + " " + df_copy['ICAO Trip Category']
+    df_uniques = df_copy.drop_duplicates(subset='Trip Info Combined')  # drop the duplicates
 
-    combined_list = df_copy['Trip Info Combined'].values.tolist()
-    uniques = []
+    return df_uniques.to_csv('unique_trips.csv', index=False)  # FIXME: returns 'None' & also the csv file is in the working directory, not /data/
 
-    for item in combined_list:
-        if item not in uniques:
-            uniques.append(item)
 
-    return uniques
+# def backfill_from_uniques():

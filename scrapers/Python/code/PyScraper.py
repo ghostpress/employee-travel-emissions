@@ -208,7 +208,7 @@ class PyScraper:
         """
 
         self.df.at[row, col] = new_val
-        self.df.to_csv('output3.csv', index=False)
+        self.df.to_csv('output4.csv', index=False)
 
     def clear_inputs(self, name):
         """A function to clear the inputs on the page, so that the next iteration can be entered.
