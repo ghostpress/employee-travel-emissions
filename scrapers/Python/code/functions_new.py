@@ -3,11 +3,8 @@
 import pandas as pd
 from code import PyScraper
 
-flight_types_path = 'data/flight_types.csv'
-# df = pd.read_csv('')
 
-
-def convert_tickets(df, tics, format_file):
+def convert_tickets(df, tickets, format_file):
     """A function to convert the ticket class names into the matching ICAO categories: Economy or Premium.
     Ticket classes are not standard across airlines, and there are many different names for the same class.
 
@@ -15,7 +12,7 @@ def convert_tickets(df, tics, format_file):
     ----------
     df : pd.DataFrame
         The dataframe holding the original dataset, including ticket types to convert
-    tics : list
+    tickets : list
         The list of ticket classes taken from the dataset
     format_file : str
         The path to the file which contains the conversions to ICAO categories
@@ -24,17 +21,17 @@ def convert_tickets(df, tics, format_file):
     """
 
     convert_guide = pd.read_csv(format_file)
-    df['ICAO Trip Category'] = ''
+    df['ICAO Trip Category'] = ''  # Create a new column for the converted ticket types
 
-    for index in range(len(tics)):
+    for index in range(len(tickets)):
         for i, row in convert_guide.iterrows():
-            if tics[index] == convert_guide.at[i, "Field in Sheet"]:
+            if tickets[index] == convert_guide.at[i, "Field in Sheet"]:
                 df.at[index, 'ICAO Trip Category'] = convert_guide.at[i, "Change to"]
 
     return df['ICAO Trip Category'].tolist()
 
 
-def extract_uniques(df_orig):
+def extract_uniques(df_orig):  # TODO: make it return a df
     """A function to extract the unique trips according to departure and arrival airport codes, and cabin class.
 
     Parameters
@@ -51,9 +48,10 @@ def extract_uniques(df_orig):
 
     df_copy['Trip Info Combined'] = ''
 
-    for i, row in df_copy.iterrows():
-        combined = df_copy.at[i, 'Departure Station Code'] + " " + df_copy.at[i, 'Arrival Station Code'] + " " + df_copy.at(i, 'ICAO Trip Category')
-        df_copy[i, 'Trip Info Combined'] = combined
+    # Call convert_tickets() first TODO: make this cleaner
+    tickets = convert_tickets(df_copy, df_copy['Class of Service'].values.tolist(), 'data/flight_types.csv')
+
+    df_copy['Trip Info Combined'] = df_copy['Departure Station Code'] + " " + df_copy['Arrival Station Code'] + " " + df_copy['ICAO Trip Category']
 
     combined_list = df_copy['Trip Info Combined'].values.tolist()
     uniques = []

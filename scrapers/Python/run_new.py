@@ -12,7 +12,10 @@ compare_path      = 'data/emissions_compare.csv'
 flight_types_path = 'data/flight_types.csv'
 
 subset_scrape = PyScraper(link, subset_path)
-subset_scrape.extract_uniques()
+uniqs = functions_new.extract_uniques(subset_scrape.get_df())
+print(uniqs)
+
+print('No longer testing')
 
 # Get the list of ticket classes
 tic_list = subset_scrape.extract_column('Class of Service')

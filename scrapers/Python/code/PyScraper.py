@@ -34,9 +34,8 @@ class PyScraper:
         # Get dataframe from csv in data_path
         self.df = pd.read_csv(data_path)
 
-    @staticmethod
-    def get_df():
-        return df
+    def get_df(self):
+        return self.df
 
     def extract_column(self, col_name):  # TODO: move to functions?
         """A function to extract the items in a specified column in the data.
