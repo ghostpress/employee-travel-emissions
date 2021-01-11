@@ -20,6 +20,8 @@ class PyScraper:
 
     def __init__(self, url, path):
 
+        print('Initializing scraper.')
+
         # Initiate the driver
 
         link = url
@@ -68,10 +70,10 @@ class PyScraper:
         # Entries always in the following format: CityName, STATENAME, COUNTRYABBREV
         cities = []
 
-        for item in entries:  # For each item in the entire list of entries,
-
-            index = item.find(',')        # find the index of the first comma
-            cities.append(item[0:index])  # append the substring containing the city name to the list
+        for location in entries:              # For each location in the entire list of entries,
+            location = str(location)          # ensure it's a string,
+            index = location.find(',')        # find the index of the first comma,
+            cities.append(location[0:index])  # and append the substring containing the city name to the list
 
         return cities
 
@@ -90,7 +92,7 @@ class PyScraper:
 
         select = Select(self.driver.find_element_by_xpath(xpath))
         select.select_by_visible_text(type)
-        time.sleep(2)  # Selenium runs very quickly, website can't always load elements in time
+        time.sleep(2)  # Selenium runs very quickly, website can't always load elements in time; was 2
 
     def set_cabin_class(self, xpath, cat):
         """A function to set and click the correct cabin class in the calculator.
@@ -159,16 +161,16 @@ class PyScraper:
 
         input = self.driver.find_element_by_name(name)
         input.send_keys(airport)
-        time.sleep(2)
+        time.sleep(5)
 
-        click_wait = WebDriverWait(self.driver, 15).until(ec.visibility_of_element_located((By.XPATH, xpath)))
+        click_wait = WebDriverWait(self.driver, 60).until(ec.visibility_of_element_located((By.XPATH, xpath)))  # was 15
         menu_items = click_wait.find_elements_by_tag_name(tag_name)  # list of drop-down menu options
 
         # Click the correct option, using the match() helper function
 
         index = self.match(city, menu_items)
-        element = WebDriverWait(self.driver, 15).until(
-            ec.element_to_be_clickable((By.XPATH, xpath + "/" + tag_name + "[" + str(index) + "]")))
+        element = WebDriverWait(self.driver, 60).until(
+            ec.element_to_be_clickable((By.XPATH, xpath + "/" + tag_name + "[" + str(index) + "]")))  # was 15
         element.click()
 
     def compute(self):
@@ -217,7 +219,7 @@ class PyScraper:
         """
 
         self.df.at[row, col] = new_val
-        self.df.to_csv(self.data_path, index=False)  # FIXME: need it to edit the original file
+        self.df.to_csv('output6_full.csv', index=False)  # FIXME: need it to edit the original file
 
     def clear_inputs(self, name):
         """A function to clear the inputs on the page, so that the next iteration can be entered.

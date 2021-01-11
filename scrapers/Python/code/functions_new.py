@@ -1,6 +1,7 @@
 # Import libraries and classes
 
 import pandas as pd
+import math
 from code import PyScraper
 
 
@@ -43,6 +44,8 @@ def extract_uniques(df_orig):
     :returns str
     """
 
+    print('Extracting unique trips. Please wait.')
+
     df_copy = df_orig.copy()  # Make a copy of the dataframe currently holding all data
 
     # Create a new column combining the trip info: 'DEP ARR Class' (blank for now)
@@ -56,11 +59,35 @@ def extract_uniques(df_orig):
                                     df_copy['ICAO Trip Category']
 
     df_uniques = df_copy.drop_duplicates(subset='Trip Info Combined')  # Drop the duplicates
-    df_uniques.to_csv('data/unique_trips.csv', index=False)  # Write to a csv file in the data folder
-    return 'data/unique_trips.csv'
+    df_uniques.to_csv('data/unique_trips_full.csv', index=False)       # Write to a csv file in the data folder
+    return 'data/unique_trips_full.csv'
 
 
-def fill_from_uniques(uniques_path, all_path):
+def index_of_next_calc(results_path):
+    """A function to get the index of the next row to calculate in the emissions output file.
+     Use in case the browser crashes, keyboard interrupt, Selenium error stops the program, etc. to continue scraping
+     without repeating previous work.
+
+    Parameters
+    ----------
+    results_path : str
+        The path to the file to which the scraper had been writing
+
+    :returns int
+    """
+
+    last_place = -2  # Initialize as -2 to test if all values calculated
+    df_results = pd.read_csv(results_path)
+
+    for i, row in df_results.iterrows():
+        if math.isnan(df_results.at[i, 'Emissions']):  # Check if empty entry, ie not yet calculated
+            last_place = i
+            break  # Exit the loop; otherwise, it will keep going until the end of the file
+
+    return last_place + 1  # if -1 is returned, then all values have been calculated
+
+
+def fill_from_uniques(uniques_path, all_path):  # TODO: test
     """A function to backfill duplicate emissions calculations from a file containing the unique trips and their emissions.
 
     Parameters
@@ -78,6 +105,9 @@ def fill_from_uniques(uniques_path, all_path):
     all_data = pd.read_csv(all_path)
 
     data_copy = all_data.copy()  # Create a copy of the data
+    convert_tickets(data_copy, data_copy['Class of Service'].values.tolist(), 'data/flight_types.csv')
+    data_copy['Trip Info Combined'] = data_copy['Departure Station Code'] + " " + data_copy['Arrival Station Code'] + \
+                                      " " + data_copy['ICAO Trip Category']
 
     data_copy['Emissions'] = ''  # Create an empty column in the data file for the emissions calculations
 
@@ -89,3 +119,7 @@ def fill_from_uniques(uniques_path, all_path):
     data_copy.to_csv('data/filled.csv')
 
     print('Duplicate trips back-filled.')
+
+
+# TODO: write a helper method for combining the trip info; pass in the file names to these ^ methods, ie subset vs all, etc.
+# TODO: change 'Emissions' column to 'Emissions (KG)'
