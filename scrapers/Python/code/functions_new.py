@@ -32,7 +32,7 @@ def convert_tickets(df, tickets, format_file):
     return df['ICAO Trip Category'].tolist()
 
 
-def extract_uniques(df_orig):
+def extract_uniques(df_orig, flight_types_file, dest_file):
     """A function to extract the unique trips according to departure and arrival airport codes, and cabin class.
     The output is printed to a new csv file.
 
@@ -40,8 +40,12 @@ def extract_uniques(df_orig):
     ----------
     df_orig : pd.DataFrame
         The dataframe holding the original data from which to extract unique trips
+    flight_types_file : str
+        The path to the file containing the conversions to the correct ICAO flight types
+    dest_file : str
+        The path to the file to which to write the unique data
 
-    :returns str
+    :returns None
     """
 
     print('Extracting unique trips. Please wait.')
@@ -52,15 +56,16 @@ def extract_uniques(df_orig):
     df_copy['Trip Info Combined'] = ''
 
     # Call helper function convert_tickets()
-    tickets = convert_tickets(df_copy, df_copy['Class of Service'].values.tolist(), 'data/flight_types.csv')
+    tickets = convert_tickets(df_copy, df_copy['Class of Service'].values.tolist(), flight_types_file)
 
     # Fill in that column
     df_copy['Trip Info Combined'] = df_copy['Departure Station Code'] + " " + df_copy['Arrival Station Code'] + " " + \
                                     df_copy['ICAO Trip Category']
 
-    df_uniques = df_copy.drop_duplicates(subset='Trip Info Combined')  # Drop the duplicates
-    df_uniques.to_csv('data/unique_trips_full.csv', index=False)       # Write to a csv file in the data folder
-    return 'data/unique_trips_full.csv'
+    df_uniques = df_copy.drop_duplicates(subset='Trip Info Combined')  # Drop the duplicates using this column
+    df_uniques.to_csv(dest_file, index=False)                          # Write to the desired csv file
+
+    print('Unique trips extracted. Please find them in ' + dest_file + ".")
 
 
 def index_of_next_calc(results_path):
@@ -76,15 +81,19 @@ def index_of_next_calc(results_path):
     :returns int
     """
 
-    last_place = -2  # Initialize as -2 to test if all values calculated
+    print('Checking previous progress...')
+
     df_results = pd.read_csv(results_path)
 
     for i, row in df_results.iterrows():
-        if math.isnan(df_results.at[i, 'Emissions']):  # Check if empty entry, ie not yet calculated
-            last_place = i
-            break  # Exit the loop; otherwise, it will keep going until the end of the file
 
-    return last_place + 1  # if -1 is returned, then all values have been calculated
+        try:
+            if math.isnan(df_results.at[i, 'Emissions (KG)']):  # Check if empty entry, ie not yet calculated
+                return i + 1  # Exit the loop; otherwise, it will keep going until the end of the file
+
+        except KeyError:  # if the 'Emissions' column doesn't exist
+            print('Nothing has been calculated yet.')
+            return -1
 
 
 def fill_from_uniques(uniques_path, all_path):  # TODO: test

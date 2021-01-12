@@ -163,14 +163,14 @@ class PyScraper:
         input.send_keys(airport)
         time.sleep(5)
 
-        click_wait = WebDriverWait(self.driver, 60).until(ec.visibility_of_element_located((By.XPATH, xpath)))  # was 15
+        click_wait = WebDriverWait(self.driver, 15).until(ec.visibility_of_element_located((By.XPATH, xpath)))  # was 60
         menu_items = click_wait.find_elements_by_tag_name(tag_name)  # list of drop-down menu options
 
         # Click the correct option, using the match() helper function
 
         index = self.match(city, menu_items)
-        element = WebDriverWait(self.driver, 60).until(
-            ec.element_to_be_clickable((By.XPATH, xpath + "/" + tag_name + "[" + str(index) + "]")))  # was 15
+        element = WebDriverWait(self.driver, 15).until(
+            ec.element_to_be_clickable((By.XPATH, xpath + "/" + tag_name + "[" + str(index) + "]")))  # was 60
         element.click()
 
     def compute(self):
@@ -205,21 +205,23 @@ class PyScraper:
 
         return table_results
 
-    def append_to_csv(self, new_val, row, col):
+    def append_to_csv(self, new_val, row, col, dest_file):
         """A function to add a value to a csv file in the specified row and column.
 
         Parameters
         ----------
         new_val : int
             The new value to append in the correct column and row
-        row : int
-            The row in which to insert the new value
+        row, col : int
+            The row and column in which to insert the new value
+        dest_file : str
+            The path to the file to which to write the results
 
         :returns str
         """
 
         self.df.at[row, col] = new_val
-        self.df.to_csv('output6_full.csv', index=False)  # FIXME: need it to edit the original file
+        self.df.to_csv(dest_file, index=False)  # FIXME: need it to edit the original file
 
     def clear_inputs(self, name):
         """A function to clear the inputs on the page, so that the next iteration can be entered.
