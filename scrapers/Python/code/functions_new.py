@@ -4,6 +4,8 @@ import pandas as pd
 import math
 from code import PyScraper
 
+# TODO: write a helper method for combining the trip info so run.py isn't so long & confusing
+
 
 def convert_tickets(df, tickets, format_file):
     """A function to convert the ticket class names into the matching ICAO categories: Economy or Premium.
@@ -89,11 +91,13 @@ def index_of_next_calc(results_path):
 
         try:
             if math.isnan(df_results.at[i, 'Emissions (KG)']):  # Check if empty entry, ie not yet calculated
-                return i + 1  # Exit the loop; otherwise, it will keep going until the end of the file
+                return i  # Exit the loop; otherwise, it will keep going until the end of the file
 
-        except KeyError:  # if the 'Emissions' column doesn't exist
+        except KeyError:  # If the 'Emissions' column doesn't exist
             print('Nothing has been calculated yet.')
             return -1
+
+    return len(df_results['Emissions (KG)'])  # The column is full, ie all calculations have been entered
 
 
 def fill_from_uniques(uniques_path, all_path):  # TODO: test
@@ -128,7 +132,3 @@ def fill_from_uniques(uniques_path, all_path):  # TODO: test
     data_copy.to_csv('data/filled.csv')
 
     print('Duplicate trips back-filled.')
-
-
-# TODO: write a helper method for combining the trip info; pass in the file names to these ^ methods, ie subset vs all, etc.
-# TODO: change 'Emissions' column to 'Emissions (KG)'

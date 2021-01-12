@@ -14,7 +14,7 @@ flight_types_path   = 'data/flight_types.csv'
 uniques_path_subset = 'data/uniques_subset.csv'
 uniques_path_full   = 'data/uniques_full.csv'
 results_path_subset = 'data/output6_subset'
-results_path_full   = 'data/output6_full.csv'  
+results_path_full   = 'data/output6_full.csv'
 
 # XPATHs for site
 one_way_xpath     = '/html/body/div[1]/form/div[1]/div[1]/div/table/tbody/tr/td[1]/select'
@@ -41,17 +41,14 @@ subset_arr_loc    = subset_scrape.extract_column('Arrival City')
 subset_dep_cities = subset_scrape.parse_cities(subset_dep_loc)
 subset_arr_cities = subset_scrape.parse_cities(subset_arr_loc)
 
-next_calc = functions_new.index_of_next_calc(uniques_path_subset)  # TODO NEXT!!
-print(str(next_calc))  # FIXME: says 4 when should be 11
+next_calc = functions_new.index_of_next_calc(uniques_path_subset)
 
-quit()
-
-if next_calc == -1:
+if next_calc == -1:  # The 'Emissions (KG)' column is empty, ie nothing has been calculated yet
 
     print('Starting calculations from first row. Please wait.')
     for index in range(len(subset_dep_codes)):
 
-        print('Computing: ' + str(index + 1) + ' / ' + str(len(subset_dep_codes)) + '...')
+        print('Computing: ' + str(index) + ' / ' + str(len(subset_dep_codes)) + '...')
 
         subset_scrape.set_trip_type(one_way_xpath, 'One Way')
         subset_scrape.set_cabin_class(cabin_class_xpath, subset_tics_icao[index])
@@ -68,7 +65,7 @@ if next_calc == -1:
 
         subset_scrape.append_to_csv(emit, index, 'Emissions (KG)', uniques_path_subset)  # edit uniques file for now
 
-if next_calc != -1:  # FIXME: on 2nd keyboard interrupt (at row 10 completed), still says row 5
+if next_calc != -1 and next_calc != len(subset_dep_codes):  # The 'Emissions (KG)' column is not empty but not finished
 
     print('Starting calculations from row ' + str(next_calc) + ". Please wait.")
     for index in range(next_calc, len(subset_dep_codes)):
@@ -89,59 +86,9 @@ if next_calc != -1:  # FIXME: on 2nd keyboard interrupt (at row 10 completed), s
 
         subset_scrape.append_to_csv(emit, index, 'Emissions (KG)', uniques_path_subset)
 
-# print(next_calc)  # print test passed 1/12/21
+if next_calc == len(subset_dep_codes):  # The 'Emissions (KG)' column is full, ie all calculations finished
+    print('All done.')
 
-# print(pd.read_csv('output6_full.csv')['Emissions'])
-
-# functions_new.extract_uniques(pd.read_csv(full_path), flight_types_path, results_path)  # Run once to extract uniques
-# test_scrape = PyScraper(link, results_path)
-#
-# test_tic_list = test_scrape.extract_column('Class of Service')
-# test_tic_list_icao = functions_new.convert_tickets(test_scrape.get_df(), test_tic_list, flight_types_path)
-# test_dep_codes = test_scrape.extract_column('Departure Station Code')
-# test_arr_codes = test_scrape.extract_column('Arrival Station Code')
-# test_dep_loc = test_scrape.extract_column('Departure City')
-# test_arr_loc = test_scrape.extract_column('Arrival City')
-# test_dep_city = test_scrape.parse_cities(test_dep_loc)
-# test_arr_city = test_scrape.parse_cities(test_arr_loc)
-# test_emissions = []
-
-# next_calc = functions_new.index_of_next_calc(results_path)
-#
-# if next_calc != -1:
-#
-#     print('Computing where last left off. Please wait.')
-#     for index in range(next_calc, len(test_dep_codes)):
-#
-#         print("Computing: " + str(index + 1) + " / " + str(len(test_dep_codes)) + " ...")
-#         test_scrape.compute()
-#         table = test_scrape.extract_from_table("/html/body/div[1]/form/div[2]/div/div/div[1]/div[1]/table/tbody/tr",
-#                                                  "th")
-#         test_emissions.append(table[6])
-#
-#         test_scrape.clear_inputs('frm1')
-#         test_scrape.clear_inputs('to1')
-#
-#         test_csv = test_scrape.append_to_csv(test_emissions[index], index, 'Emissions')
-#
-# if next_calc == -1:
-#
-#     print('Computing. Please wait.')
-#
-#     for index in range(len(test_dep_codes)):
-#
-#         print("Computing: " + str(index + 1) + " / " + str(len(test_dep_codes)) + " ...")
-#         test_scrape.compute()
-#         table = test_scrape.extract_from_table("/html/body/div[1]/form/div[2]/div/div/div[1]/div[1]/table/tbody/tr",
-#                                                  "th")
-#         test_emissions.append(table[6])
-#
-#         test_scrape.clear_inputs('frm1')
-#         test_scrape.clear_inputs('to1')
-#
-#         test_csv = test_scrape.append_to_csv(test_emissions[index], index, 'Emissions')
-
-# print(functions_new.index_of_next_calc('output6_full.csv'))  # first print test passed 1/11/21
 print('No longer testing.')
 quit()
 
