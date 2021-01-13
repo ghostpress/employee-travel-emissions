@@ -23,133 +23,83 @@ dep_code_xpath    = '/html/body/ul[1]'
 arr_code_xpath    = '/html/body/ul[2]'
 table_xpath       = '/html/body/div[1]/form/div[2]/div/div/div[1]/div[1]/table/tbody/tr'
 
-# --------------------- TESTING BELOW THIS LINE ---------------------
-
-print('Testing.')
+start_time = time.time()  # Track the run time of the whole process
 
 subset = pd.read_csv(subset_path)
-# functions_new.extract_uniques(subset, flight_types_path, uniques_path_subset)  # commented out to test next_calc
-subset_scrape = PyScraper(link, uniques_path_subset)  # for now, scrape just the unique values and fill back later TODO: set to results file
+functions_new.extract_uniques(subset, flight_types_path, uniques_path_subset)  # Extract the unique trips
+subset_scrape = PyScraper(link, uniques_path_subset)  # Initialize to scrape just the emissions for the unique trips
 
+# Convert the ticket class types in the data into the correct ICAO categories
 subset_tics      = subset_scrape.extract_column('Class of Service')
 subset_tics_icao = functions_new.convert_tickets(subset, subset_tics, flight_types_path)
 
+# Extract the airport codes and cities needed to send to ICAO to calculate the emissions
 subset_dep_codes  = subset_scrape.extract_column('Departure Station Code')
 subset_arr_codes  = subset_scrape.extract_column('Arrival Station Code')
-subset_dep_loc    = subset_scrape.extract_column('Departure City')
+subset_dep_loc    = subset_scrape.extract_column('Departure City')  # this column contains city, state, and country
 subset_arr_loc    = subset_scrape.extract_column('Arrival City')
-subset_dep_cities = subset_scrape.parse_cities(subset_dep_loc)
+subset_dep_cities = subset_scrape.parse_cities(subset_dep_loc)      # so just the cities are parsed from there
 subset_arr_cities = subset_scrape.parse_cities(subset_arr_loc)
 
-next_calc = functions_new.index_of_next_calc(uniques_path_subset)
+next_calc = functions_new.index_of_next_calc(uniques_path_subset)  # get the index of the next row to scrape
 
 if next_calc == -1:  # The 'Emissions (KG)' column is empty, ie nothing has been calculated yet
-
     print('Starting calculations from first row. Please wait.')
-    for index in range(len(subset_dep_codes)):
 
+    for index in range(len(subset_dep_codes)):  # For each trip, repeat the following:
         print('Computing: ' + str(index) + ' / ' + str(len(subset_dep_codes)) + '...')
 
+        # Set the appropriate trip settings (ie one way, ticket class) and send the airport and city names to ICAO
         subset_scrape.set_trip_type(one_way_xpath, 'One Way')
         subset_scrape.set_cabin_class(cabin_class_xpath, subset_tics_icao[index])
         subset_scrape.send('frm1', subset_dep_codes[index], subset_dep_cities[index], dep_code_xpath, 'li')
         subset_scrape.send('to1', subset_arr_codes[index], subset_arr_cities[index], arr_code_xpath, 'li')
 
-        subset_scrape.compute()
+        subset_scrape.compute()  # Compute the emissions
 
+        # Extract the value
         table = subset_scrape.extract_from_table(table_xpath, 'th')
         emit = table[6]
 
+        # Clear the text box inputs for the next iteration
         subset_scrape.clear_inputs('frm1')
         subset_scrape.clear_inputs('to1')
 
-        subset_scrape.append_to_csv(emit, index, 'Emissions (KG)', uniques_path_subset)  # edit uniques file for now
+        # Add the value to the appropriate row in the csv file
+        subset_scrape.append_to_csv(emit, index, 'Emissions (KG)', uniques_path_subset)
 
 if next_calc != -1 and next_calc != len(subset_dep_codes):  # The 'Emissions (KG)' column is not empty but not finished
 
     print('Starting calculations from row ' + str(next_calc) + ". Please wait.")
-    for index in range(next_calc, len(subset_dep_codes)):
+
+    for index in range(next_calc, len(subset_dep_codes)):  # For each trip, repeat the following:
         print('Computing: ' + str(index + 1) + ' / ' + str(len(subset_dep_codes)) + '...')
 
+        # Set the appropriate trip settings (ie one way, ticket class) and send the airport and city names to ICAO
         subset_scrape.set_trip_type(one_way_xpath, 'One Way')
         subset_scrape.set_cabin_class(cabin_class_xpath, subset_tics_icao[index])
         subset_scrape.send('frm1', subset_dep_codes[index], subset_dep_cities[index], dep_code_xpath, 'li')
         subset_scrape.send('to1', subset_arr_codes[index], subset_arr_cities[index], arr_code_xpath, 'li')
 
-        subset_scrape.compute()
+        subset_scrape.compute()  # Compute the emissions
 
+        # Extract the value
         table = subset_scrape.extract_from_table(table_xpath, 'th')
         emit = table[6]
 
+        # Clear the text box inputs for the next iteration
         subset_scrape.clear_inputs('frm1')
         subset_scrape.clear_inputs('to1')
 
+        # Add the value to the appropriate row in the csv file
         subset_scrape.append_to_csv(emit, index, 'Emissions (KG)', uniques_path_subset)
 
 if next_calc == len(subset_dep_codes):  # The 'Emissions (KG)' column is full, ie all calculations finished
-    print('All done.')
+    print('Calculations finished.')
 
-print('No longer testing.')
-quit()
+# Now use the unique trips emissions values to fill in the duplicates in the subset
 
-# ------------------- DEVELOPMENT BELOW THIS LINE --------------------
+print('Filling in the remaining data. Please wait.')
+functions_new.fill_from_uniques(uniques_path_subset, subset_path)  # test passed 1/13/21
 
-# Run once to extract unique data into file - this will take a while for the full set
-# uniques_path = functions_new.extract_uniques(pd.read_csv(full_path))
-
-# Initialize the scraper
-unique_scrape = PyScraper(link, 'data/unique_trips_full.csv')
-
-# Get the list of ticket classes
-unique_tic_list = unique_scrape.extract_column('Class of Service')
-
-# Put the ticket class list into the correct categories for ICAO  FIXME: doesn't change original file
-unique_tic_list_icao = functions_new.convert_tickets(unique_scrape.get_df(), unique_tic_list, flight_types_path)
-
-# Get the departure and arrival airport codes
-unique_dep_list = unique_scrape.extract_column('Departure Station Code')
-unique_arr_list = unique_scrape.extract_column('Arrival Station Code')
-
-# Get the entries in the departure and arrival cities
-unique_dep_loc = unique_scrape.extract_column('Departure City')
-unique_arr_loc = unique_scrape.extract_column('Arrival City')
-
-# Parse the city names from these
-unique_dep_city = unique_scrape.parse_cities(unique_dep_loc)
-unique_arr_city = unique_scrape.parse_cities(unique_arr_loc)
-
-unique_emissions = []
-start_time = time.time()  # Want to get running time for computation
-print('Computing. Please wait.')
-
-for index in range(len(unique_dep_list)):
-
-    # Set the trip type (all one way)
-    unique_scrape.set_trip_type('/html/body/div[1]/form/div[1]/div[1]/div/table/tbody/tr/td[1]/select', 'One Way')
-
-    # Set the cabin class category
-    unique_scrape.set_cabin_class('/html/body/div[1]/form/div[1]/div[1]/div/table/tbody/tr/td[2]/select', unique_tic_list_icao[index])
-
-    # Send the airport codes to the ICAO calculator
-
-    unique_scrape.send('frm1', unique_dep_list[index], unique_dep_city[index], '/html/body/ul[1]', 'li')
-    unique_scrape.send('to1', unique_arr_list[index], unique_arr_city[index], '/html/body/ul[2]', 'li')
-
-    # Compute emissions and extract the resulting number from the website
-
-    print("Computing: " + str(index + 1) + " / " + str(len(unique_dep_list)) + " ...")
-    unique_scrape.compute()
-    table = unique_scrape.extract_from_table("/html/body/div[1]/form/div[2]/div/div/div[1]/div[1]/table/tbody/tr", "th")
-    unique_emissions.append(table[6])
-
-    # Clear departure and arrival inputs for next iteration
-
-    unique_scrape.clear_inputs('frm1')
-    unique_scrape.clear_inputs('to1')
-
-    unique_csv = unique_scrape.append_to_csv(unique_emissions[index], index, 'Emissions')  # FIXME: does not include ICAO trip category column
-
-# TODO: back-fill matches from unique calculations
-# functions_new.fill_from_uniques(uniques_path, subset_path)
-
-print("All done. Finished in: " + (time.time() - start_time) + "s.")
+print("All done. Finished in: " + str(time.time() - start_time) + "s.")

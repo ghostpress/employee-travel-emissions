@@ -2,6 +2,7 @@
 
 import pandas as pd
 import math
+import os.path
 from code import PyScraper
 
 # TODO: write a helper method for combining the trip info so run.py isn't so long & confusing
@@ -34,7 +35,7 @@ def convert_tickets(df, tickets, format_file):
     return df['ICAO Trip Category'].tolist()
 
 
-def extract_uniques(df_orig, flight_types_file, dest_file):
+def extract_uniques(df_orig, flight_types_file, dest_file):  # FIXME: overwrites file if already exists
     """A function to extract the unique trips according to departure and arrival airport codes, and cabin class.
     The output is printed to a new csv file.
 
@@ -50,24 +51,28 @@ def extract_uniques(df_orig, flight_types_file, dest_file):
     :returns None
     """
 
-    print('Extracting unique trips. Please wait.')
+    if os.path.exists(dest_file):  # Check if this operation has already been done, eg. from a previous (aborted) run
+        print('Unique trips have already been extracted. Please find them in ' + dest_file + ".")
 
-    df_copy = df_orig.copy()  # Make a copy of the dataframe currently holding all data
+    else:  # If not, do it
+        print('Extracting unique trips. Please wait.')
 
-    # Create a new column combining the trip info: 'DEP ARR Class' (blank for now)
-    df_copy['Trip Info Combined'] = ''
+        df_copy = df_orig.copy()  # Make a copy of the dataframe currently holding all data
 
-    # Call helper function convert_tickets()
-    tickets = convert_tickets(df_copy, df_copy['Class of Service'].values.tolist(), flight_types_file)
+        # Create a new column combining the trip info: 'DEP ARR Class' (blank for now)
+        df_copy['Trip Info Combined'] = ''
 
-    # Fill in that column
-    df_copy['Trip Info Combined'] = df_copy['Departure Station Code'] + " " + df_copy['Arrival Station Code'] + " " + \
-                                    df_copy['ICAO Trip Category']
+        # Call helper function convert_tickets()
+        tickets = convert_tickets(df_copy, df_copy['Class of Service'].values.tolist(), flight_types_file)
 
-    df_uniques = df_copy.drop_duplicates(subset='Trip Info Combined')  # Drop the duplicates using this column
-    df_uniques.to_csv(dest_file, index=False)                          # Write to the desired csv file
+        # Fill in that column
+        df_copy['Trip Info Combined'] = df_copy['Departure Station Code'] + " " + df_copy['Arrival Station Code'] + " " + \
+                                        df_copy['ICAO Trip Category']
 
-    print('Unique trips extracted. Please find them in ' + dest_file + ".")
+        df_uniques = df_copy.drop_duplicates(subset='Trip Info Combined')  # Drop the duplicates using this column
+        df_uniques.to_csv(dest_file, index=False)                          # Write to the desired csv file
+
+        print('Unique trips extracted. Please find them in ' + dest_file + ".")
 
 
 def index_of_next_calc(results_path):
@@ -100,7 +105,7 @@ def index_of_next_calc(results_path):
     return len(df_results['Emissions (KG)'])  # The column is full, ie all calculations have been entered
 
 
-def fill_from_uniques(uniques_path, all_path):  # TODO: test
+def fill_from_uniques(uniques_path, all_path):
     """A function to backfill duplicate emissions calculations from a file containing the unique trips and their emissions.
 
     Parameters
@@ -117,18 +122,18 @@ def fill_from_uniques(uniques_path, all_path):  # TODO: test
     uniques = pd.read_csv(uniques_path)
     all_data = pd.read_csv(all_path)
 
-    data_copy = all_data.copy()  # Create a copy of the data
+    data_copy = all_data.copy()  # Create a copy of the data & add the columns needed to compare the trip information
     convert_tickets(data_copy, data_copy['Class of Service'].values.tolist(), 'data/flight_types.csv')
     data_copy['Trip Info Combined'] = data_copy['Departure Station Code'] + " " + data_copy['Arrival Station Code'] + \
                                       " " + data_copy['ICAO Trip Category']
 
-    data_copy['Emissions'] = ''  # Create an empty column in the data file for the emissions calculations
+    data_copy['Emissions (KG)'] = ''  # Create an empty column in the data file for the emissions calculations
 
     for i, row in data_copy.iterrows():
         for j, row_ in uniques.iterrows():
             if data_copy.at[i, 'Trip Info Combined'] == uniques.at[j, 'Trip Info Combined']:  # if the trip info matches
-                data_copy.at[i, 'Emissions'] = uniques.at[j, 'Emissions']                     # copy the value in
+                data_copy.at[i, 'Emissions (KG)'] = uniques.at[j, 'Emissions (KG)']           # copy the value in
 
-    data_copy.to_csv('data/filled.csv')
+    data_copy.to_csv('data/data_filled.csv')
 
     print('Duplicate trips back-filled.')
