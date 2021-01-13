@@ -1,4 +1,4 @@
-# Import libraries and classes
+# Import libraries
 
 import pandas as pd
 import math
