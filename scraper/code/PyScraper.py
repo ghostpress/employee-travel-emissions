@@ -39,7 +39,7 @@ class PyScraper:
     def get_df(self):
         return self.df
 
-    def extract_column(self, col_name):  # TODO: move to functions?
+    def extract_column(self, col_name):
         """A function to extract the items in a specified column in the data.
 
         Parameters
@@ -137,7 +137,7 @@ class PyScraper:
 
             for i in range(len(to_match)):
                 if to_match[i] == city.upper():
-                    correct_index = i + 1  # web menu lists start from index 1 for some dumb reason
+                    correct_index = i + 1  # web menu lists start from index 1
 
         return correct_index
 
@@ -221,7 +221,7 @@ class PyScraper:
         """
 
         self.df.at[row, col] = new_val
-        self.df.to_csv(dest_file, index=False)  # FIXME: need it to edit the original file
+        self.df.to_csv(dest_file, index=False)
 
     def clear_inputs(self, name):
         """A function to clear the inputs on the page, so that the next iteration can be entered.
