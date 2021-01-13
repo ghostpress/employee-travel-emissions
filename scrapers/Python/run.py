@@ -1,7 +1,7 @@
 # Import libraries, functions, and PyScraper class
 
 from code.PyScraper import PyScraper
-from code import functions_new
+from code import functions
 import pandas as pd
 import time
 
@@ -26,12 +26,12 @@ table_xpath       = '/html/body/div[1]/form/div[2]/div/div/div[1]/div[1]/table/t
 start_time = time.time()  # Track the run time of the whole process
 
 subset = pd.read_csv(subset_path)
-functions_new.extract_uniques(subset, flight_types_path, uniques_path_subset)  # Extract the unique trips
+functions.extract_uniques(subset, flight_types_path, uniques_path_subset)  # Extract the unique trips
 subset_scrape = PyScraper(link, uniques_path_subset)  # Initialize to scrape just the emissions for the unique trips
 
 # Convert the ticket class types in the data into the correct ICAO categories
 subset_tics      = subset_scrape.extract_column('Class of Service')
-subset_tics_icao = functions_new.convert_tickets(subset, subset_tics, flight_types_path)
+subset_tics_icao = functions.convert_tickets(subset, subset_tics, flight_types_path)
 
 # Extract the airport codes and cities needed to send to ICAO to calculate the emissions
 subset_dep_codes  = subset_scrape.extract_column('Departure Station Code')
@@ -41,7 +41,7 @@ subset_arr_loc    = subset_scrape.extract_column('Arrival City')
 subset_dep_cities = subset_scrape.parse_cities(subset_dep_loc)      # so just the cities are parsed from there
 subset_arr_cities = subset_scrape.parse_cities(subset_arr_loc)
 
-next_calc = functions_new.index_of_next_calc(uniques_path_subset)  # get the index of the next row to scrape
+next_calc = functions.index_of_next_calc(uniques_path_subset)  # get the index of the next row to scrape
 
 if next_calc == -1:  # The 'Emissions (KG)' column is empty, ie nothing has been calculated yet
     print('Starting calculations from first row. Please wait.')
@@ -100,6 +100,6 @@ if next_calc == len(subset_dep_codes):  # The 'Emissions (KG)' column is full, i
 # Now use the unique trips emissions values to fill in the duplicates in the subset
 
 print('Filling in the remaining data. Please wait.')
-functions_new.fill_from_uniques(uniques_path_subset, subset_path)  # test passed 1/13/21
+functions.fill_from_uniques(uniques_path_subset, subset_path)  # test passed 1/13/21
 
 print("All done. Finished in: " + str(time.time() - start_time) + "s.")
