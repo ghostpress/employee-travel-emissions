@@ -102,4 +102,4 @@ if next_calc == len(subset_dep_codes):  # The 'Emissions (KG)' column is full, i
 print('Filling in the remaining data. Please wait.')
 functions_new.fill_from_uniques(uniques_path_subset, subset_path)  # test passed 1/13/21
 
-print("All done. Finished in: " + (time.time() - start_time) + "s.")
+print("All done. Finished in: " + str(time.time() - start_time) + "s.")
