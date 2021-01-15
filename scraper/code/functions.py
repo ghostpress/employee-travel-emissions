@@ -72,7 +72,7 @@ def extract_uniques(df_orig, flight_types_file, dest_file):  # FIXME: overwrites
         print('Unique trips extracted. Please find them in ' + dest_file + ".")
 
 
-def index_of_next_calc(results_path):
+def index_of_next_calc(results_path, skip):
     """A function to get the index of the next row to calculate in the emissions output file.
      Use in case the browser crashes, keyboard interrupt, Selenium error stops the program, etc. to continue scraping
      without repeating previous work.
@@ -81,6 +81,8 @@ def index_of_next_calc(results_path):
     ----------
     results_path : str
         The path to the file to which the scraper had been writing
+    skip : list
+        The list of rows to skip
 
     :returns int
     """
@@ -91,13 +93,15 @@ def index_of_next_calc(results_path):
 
     for i, row in df_results.iterrows():
 
-        try:
-            if math.isnan(df_results.at[i, 'Emissions (KG)']):  # Check if empty entry, ie not yet calculated
-                return i  # Exit the loop; otherwise, it will keep going until the end of the file
+        if i not in skip:
 
-        except KeyError:  # If the 'Emissions' column doesn't exist
-            print('Nothing has been calculated yet.')
-            return -1
+            try:
+                if math.isnan(df_results.at[i, 'Emissions (KG)']):  # Check if empty entry, ie not yet calculated
+                    return i  # Exit the loop; otherwise, it will keep going until the end of the file
+
+            except KeyError:  # If the 'Emissions' column doesn't exist
+                print('Nothing has been calculated yet.')
+                return -1
 
     return len(df_results['Emissions (KG)'])  # The column is full, ie all calculations have been entered
 

@@ -36,16 +36,20 @@ full_dep_codes  = full_scrape.extract_column('Departure Station Code')
 full_arr_codes  = full_scrape.extract_column('Arrival Station Code')
 full_dep_loc    = full_scrape.extract_column('Departure City')  # this column contains city, state, and country
 full_arr_loc    = full_scrape.extract_column('Arrival City')
-full_dep_cities = full_scrape.parse_cities(full_dep_loc)      # so just the cities are parsed from there
+full_dep_cities = full_scrape.parse_cities(full_dep_loc)        # so just the cities are parsed from there
 full_arr_cities = full_scrape.parse_cities(full_arr_loc)
 
-next_calc = functions.index_of_next_calc(uniques_path_full)  # get the index of the next row to scrape
+# Have to skip some rows b/c code pairing doesn't work in calculator - must not have been a direct flight
+skip_list = [27, 33, 245, 261, 400, 500, 511, 513, 526, 527, 546, 565, 583, 600, 611, 620, 660, 687, 714, 738, \
+                 852, 883, 884, 887, 909, 937, 950, 1041, 1048, 1096]
+next_calc = functions.index_of_next_calc(uniques_path_full, skip_list)  # get the index of the next row to scrape
 
 if next_calc == -1:  # The 'Emissions (KG)' column is empty, ie nothing has been calculated yet
     print('Starting calculations from first row. Please wait.')
 
     for index in range(len(full_dep_codes)):  # For each trip, repeat the following:
         print('Computing: ' + str(index + 1) + ' / ' + str(len(full_dep_codes)) + '...')
+        print('Time: ' + str((time.time() - start_time)/60) + " mins.")
 
         # Set the appropriate trip settings (ie one way, ticket class) and send the airport and city names to ICAO
         full_scrape.set_trip_type(one_way_xpath, 'One Way')
@@ -68,10 +72,15 @@ if next_calc == -1:  # The 'Emissions (KG)' column is empty, ie nothing has been
 
 if next_calc != -1 and next_calc != len(full_dep_codes):  # The 'Emissions (KG)' column is not empty but not finished
 
+    if next_calc in skip_list:
+        next_calc += 1
+        print('Skipping ' + str(next_calc) + " for now.")
+
     print('Starting calculations from row ' + str(next_calc) + ". Please wait.")
 
     for index in range(next_calc, len(full_dep_codes)):  # For each trip, repeat the following:
         print('Computing: ' + str(index + 1) + ' / ' + str(len(full_dep_codes)) + '...')
+        print('Time: ' + str((time.time() - start_time)/60) + " mins.")
 
         # Set the appropriate trip settings (ie one way, ticket class) and send the airport and city names to ICAO
         full_scrape.set_trip_type(one_way_xpath, 'One Way')
@@ -100,4 +109,4 @@ if next_calc == len(full_dep_codes):  # The 'Emissions (KG)' column is full, ie 
 print('Filling in the remaining data. Please wait.')
 functions.fill_from_uniques(uniques_path_full, full_path)  # test passed 1/13/21
 
-print("All done. Finished in: " + str(time.time() - start_time) + "s.")
+print("All done. Finished in: " + str((time.time() - start_time)/60) + " mins.")

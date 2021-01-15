@@ -20,7 +20,7 @@ class PyScraper:
 
     def __init__(self, url, path):
 
-        print('Initializing scraper.')
+        print('Initializing the scraper.')
 
         # Initiate the driver
 
@@ -71,10 +71,39 @@ class PyScraper:
 
         for location in entries:              # For each location in the entire list of entries,
             location = str(location)          # ensure it's a string,
-            index = location.find(',')        # find the index of the first comma,
+
+            if '/' in location:
+                index = location.find('/')    # bug with 'Minneapolis/St Paul', so need the index of / instead of ,
+            else:
+                index = location.find(',')    # find the index of the first comma,
+
             cities.append(location[0:index])  # and append the substring containing the city name to the list
 
         return cities
+
+    @staticmethod
+    def parse_airports(entries):
+        """A function to parse the airport code from the longer entry in each ICAO drop-down menu item. For example, in
+        the ICAO drop-down, BOSTON is listed as 'BOSTON, UNST (BOS )'. In this case, this function returns just 'BOS'
+
+        Parameters
+        ----------
+        entries : list
+            The list of entries from which to extract each airport code
+
+        :returns list
+        """
+
+        codes = []
+
+        for option in entries:
+            option = str(option)
+            start = option.find('(') + 1
+            end = option.find(')') - 1
+
+            codes.append(option[start:end])
+
+        return codes
 
     def set_trip_type(self, xpath, type):
         """A function to set and click the correct trip type in the calculator.
@@ -110,13 +139,15 @@ class PyScraper:
         select.select_by_visible_text(cat)
         time.sleep(2)
 
-    def match(self, city, items):
+    def match(self, city, airport, items):
         """A function to match the given city to the correct option in the drop-down menu.
 
         Parameters
         ----------
         city : str
             The full name of the city, eg. Boston
+        airport : str
+            The airport code
         items : list
             The options in the drop-down menu; index starts from 1
 
@@ -127,18 +158,15 @@ class PyScraper:
         for item in items:
             items_str.append(item.text)
 
-        correct_index = -1
-
         if len(items_str) == 1:
-            correct_index = 1
+            return 1
         else:
-            to_match = self.parse_cities(items_str)  # extract just the cities from each row in the menu
+            city_to_match = self.parse_cities(items_str)       # extract just the cities from each row in the menu
+            airport_to_match = self.parse_airports(items_str)  # extract just the airport codes ""
 
-            for i in range(len(to_match)):
-                if to_match[i] == city.upper():
-                    correct_index = i + 1  # web menu lists start from index 1
-
-        return correct_index
+            for i in range(len(city_to_match)):
+                if city_to_match[i] == city.upper() or airport_to_match[i] == airport:
+                    return i + 1  # web menu lists start from index 1
 
     def send(self, name, airport, city, xpath, tag_name):
         """A function to send airport info to the online ICAO calculator.
@@ -167,7 +195,7 @@ class PyScraper:
 
         # Click the correct option, using the match() helper function
 
-        index = self.match(city, menu_items)
+        index = self.match(city, airport, menu_items)
         element = WebDriverWait(self.driver, 15).until(
             ec.element_to_be_clickable((By.XPATH, xpath + "/" + tag_name + "[" + str(index) + "]")))
         element.click()
