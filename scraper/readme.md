@@ -4,7 +4,7 @@
 
 This code is written in Python 3 for scraping flight emissions calculations from the ICAO
 Carbon Emissions Calculator (ICEC). It requires the Selenium library for Python and the chromedriver by Google.
-For a full requirements list, see the requirements.txt file (coming soon). 
+For a full requirements list, see the requirements.txt file in the main directory. 
 
 The "PyScraper" class is used to control the browser and scrape the data.
 The "functions.py" file contains all auxiliary functions used in the "run.py" file, including those to extract the unique trips and back-fill the remaining data after scraping the emissions calculations.
@@ -12,7 +12,7 @@ The "run.py" file runs the program using our flight logs dataset from BU. Please
 
 ### Use Instructions
 
-Using the anaconda environment managing tool and our requirements.txt file (coming soon), this work can be replicated in any machine. To do so, enter the following command in a terminal window:
+Using the anaconda environment managing tool and our requirements.txt file, this work can be replicated in any machine. To do so, enter the following command in a terminal window:
 
 `conda create --name myenv --file requirements.txt`
 
