@@ -264,6 +264,15 @@ class PyScraper:
         input_to_clear = self.driver.find_element_by_name(name)
         input_to_clear.clear()
 
+    def quit(self):
+        """A function to shut down the chrome driver and close Chrome.
+
+        :returns None
+        """
+
+        print('Shutting down the driver and closing the Chrome window.')
+        self.driver.quit()
+
 
 
 

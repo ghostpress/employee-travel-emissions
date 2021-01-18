@@ -113,10 +113,13 @@ if next_calc != -1 and next_calc != len(full_dep_codes):  # The 'Emissions (KG)'
 
 if next_calc == len(full_dep_codes):  # The 'Emissions (KG)' column is full, ie all calculations finished
     print('Calculations finished.')
+    full_scrape.quit()
 
 # Now use the unique trips emissions values to fill in the duplicates in the subset
 
 print('Filling in the remaining data. Please wait.')
-functions.fill_from_uniques(uniques_path_full, full_path)  # test passed 1/13/21
+functions.fill_from_uniques(uniques_path_full, full_path, 'data/filled_full.csv')
+functions.clean_skipped('data/filled_full.csv', 'data/cleaned_full.csv')
+functions.convert_emissions_units('data/cleaned_full.csv')
 
 print("All done. Finished in: " + str((time.time() - start_time) / 60) + " mins.")

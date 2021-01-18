@@ -32,7 +32,7 @@ def convert_tickets(df, tickets, format_file):
     return df['ICAO Trip Category'].tolist()
 
 
-def extract_uniques(df_orig, flight_types_file, dest_file):  # FIXME: overwrites file if already exists
+def extract_uniques(df_orig, flight_types_file, dest_file):
     """A function to extract the unique trips according to departure and arrival airport codes, and cabin class.
     The output is printed to a new csv file.
 
@@ -63,11 +63,12 @@ def extract_uniques(df_orig, flight_types_file, dest_file):  # FIXME: overwrites
         tickets = convert_tickets(df_copy, df_copy['Class of Service'].values.tolist(), flight_types_file)
 
         # Fill in that column
-        df_copy['Trip Info Combined'] = df_copy['Departure Station Code'] + " " + df_copy['Arrival Station Code'] + " " + \
+        df_copy['Trip Info Combined'] = df_copy['Departure Station Code'] + " " + df_copy[
+            'Arrival Station Code'] + " " + \
                                         df_copy['ICAO Trip Category']
 
         df_uniques = df_copy.drop_duplicates(subset='Trip Info Combined')  # Drop the duplicates using this column
-        df_uniques.to_csv(dest_file, index=False)                          # Write to the desired csv file
+        df_uniques.to_csv(dest_file, index=False)  # Write to the desired csv file
 
         print('Unique trips extracted. Please find them in ' + dest_file + ".")
 
@@ -106,7 +107,7 @@ def index_of_next_calc(results_path, skip):
     return len(df_results['Emissions (KG)'])  # The column is full, ie all calculations have been entered
 
 
-def fill_from_uniques(uniques_path, all_path):
+def fill_from_uniques(uniques_path, all_path, results_path):
     """A function to backfill duplicate emissions calculations from a file containing the unique trips and their emissions.
 
     Parameters
@@ -115,26 +116,94 @@ def fill_from_uniques(uniques_path, all_path):
         The path to the file containing the unique trips and emissions calculations
     all_path : str
         The path to the file containing all the data to be back-filled
+    results_path : str
+        The path to the destination file
 
     :returns None
     """
 
-    # Create dataframes from the csv files for easy iteration
-    uniques = pd.read_csv(uniques_path)
-    all_data = pd.read_csv(all_path)
+    if os.path.exists(results_path):  # Check if this operation has already been done, eg. from a previous (aborted) run
+        print('Duplicate rows have already been filled. Please find them in ' + results_path + ".")
 
-    data_copy = all_data.copy()  # Create a copy of the data & add the columns needed to compare the trip information
-    convert_tickets(data_copy, data_copy['Class of Service'].values.tolist(), 'data/flight_types.csv')
-    data_copy['Trip Info Combined'] = data_copy['Departure Station Code'] + " " + data_copy['Arrival Station Code'] + \
-                                      " " + data_copy['ICAO Trip Category']
+    else:
+        # Create dataframes from the csv files for easy iteration
+        uniques = pd.read_csv(uniques_path)
+        all_data = pd.read_csv(all_path)
 
-    data_copy['Emissions (KG)'] = ''  # Create an empty column in the data file for the emissions calculations
+        print('Creating additional comparison columns in data file.')
+
+        # Create a copy of the data & add the columns needed to compare the trip information
+        data_copy = all_data.copy()
+        convert_tickets(data_copy, data_copy['Class of Service'].values.tolist(), 'data/flight_types.csv')
+        data_copy['Trip Info Combined'] = data_copy['Departure Station Code'] + " " + data_copy[
+            'Arrival Station Code'] + \
+                                          " " + data_copy['ICAO Trip Category']
+
+        data_copy['Emissions (KG CO2)'] = ''  # Create an empty column in the data file for the emissions calculations
+
+        print('Filling duplicate rows from unique values.')
+
+        for i, row in data_copy.iterrows():
+            for j, row_ in uniques.iterrows():
+                if data_copy.at[i, 'Trip Info Combined'] == uniques.at[j, 'Trip Info Combined']:  # if the info matches
+                    print('Filling row: ' + str(i) + "...")
+                    data_copy.at[i, 'Emissions (KG CO2)'] = uniques.at[j, 'Emissions (KG)']       # copy the value in
+
+        data_copy.to_csv(results_path)
+
+        print('Duplicate trips back-filled. Please find them in ' + results_path)
+
+
+def clean_skipped(all_path, results_path):
+    """A function to remove the rows which contain no emissions data, because these entries had to be skipped in the
+    calculator.
+
+    Parameters
+    ----------
+    all_path : str
+        The path to the full dataset, including calculated emissions
+    results_path : str
+        The path to the final form of the data, ready for analysis
+
+    :returns None
+    """
+
+    data = pd.read_csv(all_path)
+    data_copy = data.copy()
+
+    print('Removing rows with blank emissions values.')
+
+    to_remove = []  # Create a list of indices to drop
 
     for i, row in data_copy.iterrows():
-        for j, row_ in uniques.iterrows():
-            if data_copy.at[i, 'Trip Info Combined'] == uniques.at[j, 'Trip Info Combined']:  # if the trip info matches
-                data_copy.at[i, 'Emissions (KG)'] = uniques.at[j, 'Emissions (KG)']           # copy the value in
+        if math.isnan(data_copy.at[i, 'Emissions (KG CO2)']):
+            to_remove.append(i)
 
-    data_copy.to_csv('data/data_filled.csv')
+    cleaned = data_copy.drop(to_remove)  # drop() can take a list of indices as the parameter, returns a new dataframe
+    cleaned.to_csv(results_path)
 
-    print('Duplicate trips back-filled.')
+
+def convert_emissions_units(clean_path):
+    """A function to convert the units of the emissions values from KG CO2 to MTCO2.
+
+    Parameters
+    ----------
+    clean_path : str
+        The path to the full dataset, including calculated emissions but not including blank rows
+
+    :returns None
+    """
+
+    data = pd.read_csv(clean_path)
+    data_copy = data.copy()
+
+    print('Converting units of emissions from KG CO2 to MT CO2. Please wait.')
+
+    conversion_factor = 0.001
+    data_copy['Emissions (MT CO2)'] = ''  # Create an empty column for the converted values
+
+    for i, row in data_copy.iterrows():
+        data_copy.at[i, 'Emissions (MT CO2)'] = data_copy.at[i, 'Emissions (KG CO2)'] * conversion_factor
+        data_copy.to_csv(clean_path, index=False)
+
+    print('Emissions units converted. Please see the new column in ' + clean_path + ".")
