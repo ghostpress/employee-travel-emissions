@@ -204,6 +204,8 @@ def convert_emissions_units(clean_path):
 
     for i, row in data_copy.iterrows():
         data_copy.at[i, 'Emissions (MT CO2)'] = data_copy.at[i, 'Emissions (KG CO2)'] * conversion_factor
+        data_copy.round(decimals=5)
         data_copy.to_csv(clean_path, index=False)
 
     print('Emissions units converted. Please see the new column in ' + clean_path + ".")
+    print(data_copy)  # just to test
