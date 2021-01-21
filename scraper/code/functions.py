@@ -149,7 +149,7 @@ def fill_from_uniques(uniques_path, all_path, results_path):
                     print('Filling row: ' + str(i) + "...")
                     data_copy.at[i, 'Emissions (KG CO2)'] = uniques.at[j, 'Emissions (KG)']       # copy the value in
 
-        data_copy.to_csv(results_path)
+        data_copy.to_csv(results_path, index=False)
 
         print('Duplicate trips back-filled. Please find them in ' + results_path)
 
@@ -180,7 +180,7 @@ def clean_skipped(all_path, results_path):
             to_remove.append(i)
 
     cleaned = data_copy.drop(to_remove)  # drop() can take a list of indices as the parameter, returns a new dataframe
-    cleaned.to_csv(results_path)
+    cleaned.to_csv(results_path, index=False)
 
 
 def convert_emissions_units(clean_path):
