@@ -4,6 +4,9 @@ Boston University has very ambitious Climate Action goals outlined in its [Clima
 
 We have organized our code for this project in the following directories. Each directory contains its own readme with further details.
 
+## analysis
+This directory contains code for analyzing our data, once emissions have been calculated. 
+
 ## clean
 This directory contains code for cleaning our data. In an attempt to get started with calculating the emissions quickly, we initially did the cleaning by hand using Microsoft Excel and LibreOffice Calc. In the interest of ensuring that our research is reproducible and transparent, we have started replicating the manual process in Python. These methods are still underway; to keep track of our progress, please see the code contained in the luciav-clean and oliviah-clean branches.
 
