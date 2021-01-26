@@ -8,7 +8,7 @@ We have organized our code for this project in the following directories. Each d
 This directory contains code for analyzing our data, once emissions have been calculated. 
 
 ## clean
-This directory contains code for cleaning our data. In an attempt to get started with calculating the emissions quickly, we initially did the cleaning by hand using Microsoft Excel and LibreOffice Calc. In the interest of ensuring that our research is reproducible and transparent, we have started replicating the manual process in Python. These methods are still underway; to keep track of our progress, please see the code contained in the luciav-clean and oliviah-clean branches.
+This directory contains code for cleaning our data. Please see the readme in the clean directory for more details.
 
 ## scraper
 This directory contains code for scraping the emissions values from the ICEC (ICAO Carbon Emissions Calculator), located at [ICAO.int](https://www.icao.int/environmental-protection/Carbonoffset/Pages/default.aspx). Please see the readme in the scraper directory for more details.
