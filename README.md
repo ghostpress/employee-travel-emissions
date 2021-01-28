@@ -2,7 +2,7 @@
 
 Boston University has very ambitious Climate Action goals outlined in its [Climate Action Plan](https://www.bu.edu/climateactionplan/) (CAP), among them to reduce the University's emissions to net-zero by 2040. The CAP considers Scope 3 emissions, such as those from travel, to be an important area of investigation that has not yet been thoroughly explored. In September 2020, the [Campus Climate Laboratory](https://www.bu.edu/urbanclimate/campus-climate-lab/) granted funding to our group to attempt to quantify these emissions, using a dataset containing records of employee flights during the calendar years 2017 through early 2020. Our group consists of undergraduate students Olivia Henning and Lucia Vilallonga, and Dr. Jacqueline Ashmore, Executive Director of the [Institute for Sustainable Energy](https://www.bu.edu/ise/) and Research Associate Professor at the Department of Mechanical Engineering. For her full credentials, see Dr. Ashmore's [profile](https://www.bu.edu/ise/profile/jacqueline-ashmore/).
 
-We have organized our code for this project in the following directories. Each directory contains its own readme with further details.
+We have organized our code for this project in the following directories. Each directory contains its own readme with further details. All of the Python code can be run from a command-line terminal using `python run.py` in the appropriate directory (i.e. at the level of each run.py file). We recommend running the R code in RStudio for best results.
 
 ## analysis
 This directory contains code for analyzing our data, once emissions have been calculated. Please see the readme in the analysis directory for more details.
