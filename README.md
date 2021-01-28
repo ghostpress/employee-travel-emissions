@@ -16,8 +16,8 @@ This directory contains code for scraping the emissions values from the ICEC (IC
 # Use Instructions
 Using the anaconda environment managing tool and our requirements.txt file, this work can be replicated in any machine. To do so, enter the following command in a terminal window:
 
-conda create --name myenv --file requirements.txt
+`conda create --name myenv --file requirements.txt`
 
-Where myenv is the name of your local environment.
+Where `myenv` is the name of your local environment.
 
 After cloning this repository, you must download the chromedriver associated with your version of the browser. Check your version of Chrome here and then download the corresponding chromedriver .zip file for your OS and browser version here. Then place the unzipped chromedriver file in scraper/code and make it executable.
