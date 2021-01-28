@@ -1,0 +1,501 @@
+---
+title: "Flight Data Analysis"
+author: "Olivia Henning"
+date: "1/2/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# libraries
+```{r}
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(knitr)
+library(tidyverse)
+library(plotrix)
+library(maps)
+```
+
+# load in data
+```{r}
+dat = read.csv("Final_Data_ICAO.csv", header = TRUE)  ## load in spreadsheet
+```
+
+# sort domestic vs international
+```{r}
+domestic.flights = subset(dat, Arrival.Country == "UNITED STATES" & Departure.Country == "UNITED STATES")
+international.flights = subset(dat, Arrival.Country != "UNITED STATES" | Departure.Country != "UNITED STATES")
+
+dat$International.Status <- ifelse(dat$Arrival.Country == "UNITED STATES" & dat$Departure.Country == "UNITED STATES", 'Domestic', 'International')
+
+```
+
+# most common destinations / arrival cities
+```{r}
+destinations = dat$Arrival.City  ## arrivals
+top5dest = sort(table(destinations),decreasing=TRUE)[1:5]  ## top 5 destinations
+kable(top5dest)
+length(unique(destinations))  ## how many unique destinations
+
+
+departures = dat$Departure.City  ## departures
+top5dep = sort(table(departures),decreasing=TRUE)[1:5]  ## top 5 departures
+kable(top5dep)
+length(unique(departures))  ## how many unique departure locations
+
+
+from.BOS = subset(dat, Departure.Station.Code == "BOS")  ## flights from BOS
+top5fromBOS = sort(table(from.BOS$Arrival.City),decreasing=TRUE)[1:5]  ## top 5 dest from BOS
+kable(top5fromBOS, caption = "Top 5 Domestic Destinations from Boston", col.names = c("City", "Number of Flights"))
+
+from.BOS.internat = subset(dat, Departure.Station.Code == "BOS" & International.Status == "International")  ## international flights from BOS
+top5fromBOS_i = sort(table(from.BOS.internat$Arrival.City),decreasing=TRUE)[1:5]  ## top 5 dest from BOS
+kable(top5fromBOS_i, caption = "Top 5 International Destinations from Boston", col.names = c("City", "Number of Flights"))
+
+```
+
+# counts by city
+```{r}
+cities = group_by(dat, Arrival.City)
+citiesfromBOS = group_by(from.BOS, Arrival.City)
+```
+
+# breakdown by year
+```{r}
+dat2017 = subset(dat, Year == 2017)
+dat2018 = subset(dat, Year == 2018)
+dat2019 = subset(dat, Year == 2019)
+dat2020 = subset(dat, Year == 2020)
+years = c("2017", "2018", "2019")
+yearly.means = c(mean(dat2017$Emissions), mean(dat2018$Emissions), mean(dat2019$Emissions))
+yearly.counts = c(tally(dat2017), tally(dat2018), tally(dat2019))
+yearly.totals = c(sum(dat2017$Emissions), sum(dat2018$Emissions), sum(dat2019$Emissions))
+```
+
+# Overall stats
+```{r}
+mean(dat$Emissions)       ## avg emissions
+mean(dat$Distance.miles)  ## avg distance
+
+var(dat$Emissions)  			## variance
+sd(dat$Emissions)			  	## standard deviation
+min(dat$Emissions)				## smallest value
+max(dat$Emissions)				## largest value
+sum(dat$Emissions)        ## total emissions
+
+tally(dat)                ## number of flights
+total.flights = tally(dat)
+
+all_data = data.frame(mean(dat$Distance.miles), sd(dat$Emissions), min(dat$Emissions), max(dat$Emissions), sum(dat$Emissions), total.flights$n)
+colnames(all_data) <- c("Mean Distance Traveled (miles)", "Standard Deviation of Emissions (MT CO2)", "Minimum Emissions (MT CO2)", "Maximum Emissions (MT CO2)", "Total Emissions (MT CO2)", "Total Flights (count)")
+all_data2 = t(all_data)
+kable(format(round(all_data2, 2), nsmall = 2), caption = "Stats for All Concur Data", col.names = "Calculation")
+```
+
+# 2017 stats
+```{r}
+mean(dat2017$Emissions)       ## avg emissions
+mean(dat2017$Distance.miles)  ## avg distance
+
+var(dat2017$Emissions)  			## variance
+sd(dat2017$Emissions)				  ## standard deviation
+min(dat2017$Emissions)				## smallest value
+max(dat2017$Emissions)				## largest value
+sum(dat2017$Emissions)        ## total emissions
+
+flightcount2017 = tally(dat2017)                ## number of flights
+
+all_2017_data = data.frame(mean(dat2017$Distance.miles),  sd(dat2017$Emissions), min(dat2017$Emissions), max(dat2017$Emissions), sum(dat2017$Emissions), flightcount2017$n)
+colnames(all_2017_data) <- c("Mean Distance Traveled (miles)", "Standard Deviation of Emissions (MT CO2)", "Minimum Emissions (MT CO2)", "Maximum Emissions (MT CO2)", "Total Emissions (MT CO2)", "Total Flights (count)")
+all_2017_data2 = t(all_2017_data)
+kable(format(round(all_2017_data2, 2), nsmall = 2), caption = "Stats for 2017 Concur Data", col.names = "Calculation")
+```
+
+# 2018 stats
+```{r}
+mean(dat2018$Emissions)       ## avg emissions
+mean(dat2018$Distance.miles)  ## avg distance
+
+var(dat2018$Emissions)  			## variance
+sd(dat2018$Emissions)			  	## standard deviation
+min(dat2018$Emissions)				## smallest value
+max(dat2018$Emissions)				## largest value
+sum(dat2018$Emissions)        ## total emissions
+
+flightcount2018 = tally(dat2018)                ## number of flights
+
+all_2018_data = data.frame(mean(dat2018$Distance.miles), sd(dat2018$Emissions), min(dat2018$Emissions), max(dat2018$Emissions), sum(dat2018$Emissions), flightcount2018$n)
+colnames(all_2018_data) <- c("Mean Distance Traveled (miles)", "Standard Deviation of Emissions (MT CO2)", "Minimum Emissions (MT CO2)", "Maximum Emissions (MT CO2)", "Total Emissions (MT CO2)", "Total Flights (count)")
+all_2018_data2 = t(all_2018_data)
+kable(format(round(all_2018_data2, 2), nsmall = 2), caption = "Stats for 2018 Concur Data", col.names = "Calculation")
+```
+
+# 2019 stats
+```{r}
+mean(dat2019$Emissions)       ## avg emissions
+mean(dat2019$Distance.miles)  ## avg distance
+
+var(dat2019$Emissions)  			## variance
+sd(dat2019$Emissions)			  	## standard deviation
+min(dat2019$Emissions)				## smallest value
+max(dat2019$Emissions)				## largest value
+sum(dat2019$Emissions)        ## total emissions
+
+flightcount2019 = tally(dat2019)                ## number of flights
+
+all_2019_data = data.frame(mean(dat2019$Distance.miles), sd(dat2019$Emissions), min(dat2019$Emissions), max(dat2019$Emissions), sum(dat2019$Emissions), flightcount2019$n)
+colnames(all_2019_data) <- c("Mean Distance Traveled (miles)", "Standard Deviation of Emissions (MT CO2)", "Minimum Emissions (MT CO2)", "Maximum Emissions (MT CO2)", "Total Emissions (MT CO2)", "Total Flights (count)")
+all_2019_data2 = t(all_2019_data)
+kable(format(round(all_2019_data2, 2), nsmall = 2), caption = "Stats for 2019 Concur Data", col.names = "Calculation")
+```
+
+# 2020 stats
+```{r}
+mean(dat2020$Emissions)       ## avg emissions
+mean(dat2020$Distance.miles)  ## avg distance
+
+var(dat2020$Emissions)  			## variance
+sd(dat2020$Emissions)			  	## standard deviation
+min(dat2020$Emissions)				## smallest value
+max(dat2020$Emissions)				## largest value
+sum(dat2020$Emissions)        ## total emissions
+
+emissions_estimate_total_2020 = 4*sum(dat2020$Emissions) 
+
+flightcount2020 = tally(dat2020)                ## number of flights
+
+all_2020_data = data.frame(mean(dat2020$Distance.miles), sum(dat2020$Emissions), flightcount2020$n, emissions_estimate_total_2020)
+colnames(all_2020_data) <- c("Mean Distance Traveled (miles)", "Total Emissions (MT CO2)", "Total Flights (count)", "Estimation of 2020 Emissions based on 3-month Data")
+all_2020_data2 = t(all_2020_data)
+kable(format(round(all_2020_data2, 2), nsmall = 2), caption = "Stats for 2020 Concur Data", col.names = "Calculation")
+```
+
+# projections + estimates
+```{r}
+
+estimate_2017 = ((sum(dat2017$Emissions)))/.33
+estimate_2018 = ((sum(dat2018$Emissions)))/.33
+estimate_2019 = ((sum(dat2019$Emissions)))/.33
+estimate_2020 = (emissions_estimate_total_2020)/.33
+estimate_total = sum(estimate_2017, estimate_2018, estimate_2019, estimate_2020)
+all_estimates = c(estimate_2017, estimate_2018, estimate_2019)
+not_in_concur_2017 = estimate_2017 - sum(dat2017$Emissions)
+not_in_concur_2018 = estimate_2018 - sum(dat2018$Emissions)
+not_in_concur_2019 = estimate_2019 - sum(dat2019$Emissions)
+
+all_not_in_concur = c(not_in_concur_2017, not_in_concur_2018, not_in_concur_2019)
+
+all_estimations = data.frame(estimate_2017, estimate_2018, estimate_2019, estimate_2020, estimate_total)
+
+worst_case = round(c(estimate_2017, estimate_2018, estimate_2019, estimate_2020, estimate_total), 0)
+best_case = round(c(sum(dat2017$Emissions), sum(dat2018$Emissions), sum(dat2019$Emissions), emissions_estimate_total_2020, sum(c(sum(dat2017$Emissions), sum(dat2018$Emissions), sum(dat2019$Emissions), emissions_estimate_total_2020))), 0)
+columnnames = c("2017", "2018", "2019", "2020", "Total 2017-2020")
+
+worstvsbest = data.frame(columnnames, best_case, worst_case)
+
+kable(worstvsbest, caption = "Emissions Estimations (MT CO2)", col.names = c("Year", "Best-Case Estimate", "Worst-Case Estimate"), align = 'lcc')
+```
+
+# concise table 2017-2019
+```{r}
+average_distances1 = c(mean(dat2017$Distance.miles), mean(dat2018$Distance.miles), mean(dat2019$Distance.miles))
+total_emissions1 = c(sum(dat2017$Emissions), sum(dat2018$Emissions), sum(dat2019$Emissions))
+flightcounts1 = as.character(c(count(dat2017), count(dat2018), count(dat2019)))
+
+
+all_2017_2019_data = data.frame(years, average_distances1,  total_emissions1, flightcounts1)
+colnames(all_2017_2019_data) <- c("Year", "Mean Distance Traveled (miles)", "Total Emissions (MT CO2)", "Total Flights (count)")
+all_2017_2019_data
+kable(all_2017_2019_data, caption = "Stats for 2017-2019 Concur Data")
+
+```
+
+
+# plot data
+```{r}
+# bar plot
+Years_Barplot = c("2017", "2018", "2019", "2020")
+Emissions_Barplot = c(sum(dat2017$Emissions), sum(dat2018$Emissions), sum(dat2019$Emissions), emissions_estimate_total_2020)
+bar_plot_data = data.frame(Years_Barplot, Emissions_Barplot)
+
+#ggplot(dat, aes(x=Year, y=sum(Emissions)))
+ggplot(bar_plot_data, aes(x=Years_Barplot, y=Emissions_Barplot)) + 
+  geom_bar(stat = "identity", fill="#328cc1") +
+  xlab("Year") +
+  ylab("Total CO2 Emissions (MT CO2)") +
+  ggtitle("Total CO2 Emissions per Year", subtitle = "Representing data logged through Concur with Estimations for 2020")
+  
+```
+
+```{r}
+# stacked area
+yearly.totals1 = c(sum(dat2017$Emissions), sum(dat2018$Emissions), sum(dat2019$Emissions), 0, 0, 0)
+years1 = c(2017, 2018, 2019, 2017, 2018, 2019)
+all_not_in_concur1 = c(0, 0, 0, not_in_concur_2017, not_in_concur_2018, not_in_concur_2019)
+all_estimates1 = c(sum(dat2017$Emissions), sum(dat2018$Emissions), sum(dat2019$Emissions), not_in_concur_2017, not_in_concur_2018, not_in_concur_2019)
+Concur_Status = c("Concur data", "Concur data", "Concur data", "Not logged through Concur", "Not logged through Concur", "Not logged through Concur")
+
+estimates_vs_concur = data.frame(years1, yearly.totals1, all_not_in_concur1, all_estimates1, Concur_Status)
+
+ggplot(estimates_vs_concur, aes(x=years1, y=all_estimates1, fill=Concur_Status)) + 
+  geom_area() +
+  scale_fill_manual(values = c("#ffa600", "#328cc1")) +
+  xlab("Year") +
+  ylab("Estimate of Total CO2 Emissions (MT CO2)") +
+  ggtitle("Estimate of Data Logged Through Concur versus Other Methods", subtitle = "Based on survey of faculty and staff")  +
+  scale_x_continuous(breaks = c(2017, 2018, 2019))
+# +   geom_text(
+#    label=format(round(all_estimates1, 0), nsmall = 0), 
+#    nudge_x = 0, nudge_y = 2200, 
+    
+#  )
+```
+
+```{r}
+worst_case1 = round(c(estimate_2017, estimate_2018, estimate_2019, estimate_2020), 0)
+best_case1 = round(c(sum(dat2017$Emissions), sum(dat2018$Emissions), sum(dat2019$Emissions), emissions_estimate_total_2020), 0)
+columnnames1 = c("2017", "2018", "2019", "2020")
+
+worstvsbest1 = data.frame(columnnames1, best_case1, worst_case1)
+
+estimates_vs_concur = data.frame(years1, yearly.totals1, all_not_in_concur1, all_estimates1, Concur_Status)
+
+ggplot(worstvsbest1, aes(x=columnnames1, y=best_case1)) +
+  geom_line() +
+  ggtitle("Best Case vs Worst Case Scenarios")
+
+plot(columnnames1, best_case1, type = "l", lty = 1)
+lines(columnnames1, worst_case1, type = "l", lty = 1)
+
+```
+
+```{r}
+# histogram
+
+# take out 2020
+minus.2020 = subset(dat, Year == 2017 | Year == 2018 | Year == 2019)  ## international flights from BOS
+
+ggplot(minus.2020, aes(x=Month)) + 
+  geom_histogram(binwidth=1, fill="#f172bc", color="#e9ecef", alpha=1) +
+  xlab("Calendar Month") +
+  ylab("Totla Number of Flights") +
+  ggtitle("Distribution of Flights per Month for All Concur Data 2017-2019") +
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
+```
+
+
+```{r}
+# counts of flights from BOS by country
+
+from.BOS.internat = subset(dat, Departure.Station.Code == "BOS" & International.Status == "International")  ## international flights from BOS
+
+top10fromBOS_i = sort(table(from.BOS.internat$Arrival.Country),decreasing=TRUE)[1:10] 
+frequency_list = data.frame(top10fromBOS_i)
+frequency_list
+
+# reassign Hong Kong to China
+from.BOS1 = from.BOS.internat
+from.BOS1$Arrival.Country[from.BOS1$Arrival.Country == "HONG KONG"] <- "CHINA"
+top10fromBOS_5 = sort(table(from.BOS1$Arrival.Country),decreasing=TRUE)[1:10] 
+frequency_list2 = data.frame(top10fromBOS_5)
+frequency_list2
+
+from.BOS2 = subset(from.BOS1, Arrival.Country == "CANADA" | Arrival.Country =="UNITED KINGDOM" | Arrival.Country =="GERMANY" | Arrival.Country =="NETHERLANDS" | Arrival.Country =="CHINA" | Arrival.Country =="FRANCE" | Arrival.Country =="IRELAND"  | Arrival.Country =="SWITZERLAND"|  Arrival.Country =="TURKEY" | Arrival.Country =="PUERTO RICO")  ## flights from BOS
+
+frequency = data.frame(table(from.BOS2$Arrival.Country))
+frequency
+
+```
+
+```{r}
+
+from.BOS2 = subset(from.BOS1, Arrival.Country == "CANADA" | Arrival.Country =="UNITED KINGDOM" | Arrival.Country =="GERMANY" | Arrival.Country =="NETHERLANDS" | Arrival.Country =="CHINA" | Arrival.Country =="FRANCE" | Arrival.Country =="IRELAND"  | Arrival.Country =="SWITZERLAND"|  Arrival.Country =="TURKEY" | Arrival.Country =="PUERTO RICO")  ## flights from BOS
+
+Countries = c("CANADA", "CHINA", "FRANCE", "GERMANY", "IRELAND", "NETHERLANDS", "PUERTO RICO", "SWITZERLAND", "TURKEY", "UNITED KINGDOM")  
+
+emissions_by_country = tapply(from.BOS2$Emissions, INDEX = from.BOS2$Arrival.Country, FUN = sum)
+
+
+distance = tapply(from.BOS2$Distance.miles, INDEX = from.BOS2$Arrival.Country, FUN = mean)
+
+
+bubble_plot_data = data.frame(Countries, frequency$Freq, distance, emissions_by_country)
+bubble_plot_data
+
+# bubble plot by size
+ggplot(bubble_plot_data, aes(x=distance, y=frequency$Freq, size = emissions_by_country, col = Countries)) +
+    geom_point(alpha=0.5) +
+    scale_size(range = c(.1, 16), name="Emissions (MT CO2)") +
+    xlab("Average Distance to Country (miles)") +
+    ylab("Total Count of Flights (count)") +
+    ggtitle("Emissions by Arrival Country, Count of Flights, and Distance Traveled",   subtitle = "Representing the 10 most frequent countries visited from Boston") +
+    theme(plot.title = element_text(size=12)) +
+    theme(plot.subtitle = element_text(size=9)) +
+    theme(legend.text = element_text(size = 6)) +
+    guides(shape = guide_legend(override.aes = list(size = 0.2))) +
+    theme(legend.spacing.y = unit(0.1, "cm"), 
+        legend.box = "horizontal")
+
+```
+
+
+```{r}
+# map of top 5 domestic destinations from Boston
+
+# No margin
+par(mar=c(0,0,0,0))
+
+# Cities
+Boston = c(-71, 42)
+DC = c(-77, 39)
+Philadelphia = c(-75, 40)
+Chicago = c(-88, 42)
+NYC = c(-74, 41)
+Charlotte = c(-81, 35)
+
+# Data frame
+mapcities.d <- rbind(Boston, Chicago, NYC, Charlotte, DC, Philadelphia) %>% 
+  as.data.frame()
+colnames(mapcities.d) <- c("long","lat")
+
+# Load geosphere
+library(geosphere)
+library(ggrepel)
+
+# Background map
+data(stateMapEnv)
+map('state', region = c('Maine','Vermont', 'New Hampshire', 'Massachusetts', 'Connecticut', 'Rhode Island', 'New York', 'Pennsylvania', 'New Jersey', 'Deleware', 'Maryland', 'West Virginia', 'Virginia', 'North Carolina', 'South Carolina', 'Georgia', 'Florida', 'Alabama', 'Tennessee', 'Kentucky', 'Ohio', 'Michigan', 'Indiana', 'Mississippi', 'Louisiana', 'Arkansas', 'Missouri', 'Illinois', 'Wisconson', 'Iowa', 'Minnesota'), fill = TRUE, col = "#f2f2f2", border = "white")
+
+# Dot for cities
+points(x=mapcities.d$long, y=mapcities.d$lat, col="#328cc1", cex=2, pch=20)
+points(x=-71, y=42, cex=6, pch="*", col="#ffa600")
+
+# Compute the connection between BOS and Chicago
+inter = gcIntermediate(Boston,  Chicago, n=50, addStartEnd=TRUE, breakAtDateLine=F)
+# Show this connection
+lines(inter, col="#328cc1", lwd=2)
+ 
+# Between BOS and NYC
+inter2 = gcIntermediate(NYC, Boston, n=50, addStartEnd=TRUE, breakAtDateLine=F)             
+lines(inter2, col="#328cc1", lwd=2)
+
+# Between BOS and Charlotte
+inter2 = gcIntermediate(Charlotte, Boston, n=50, addStartEnd=TRUE, breakAtDateLine=F)             
+lines(inter2, col="#328cc1", lwd=2)
+
+# Between BOS and DC
+inter2 = gcIntermediate(DC, Boston, n=50, addStartEnd=TRUE, breakAtDateLine=F)             
+lines(inter2, col="#328cc1", lwd=2)
+
+# Between BOS and Philadelphia
+inter2 = gcIntermediate(Philadelphia, Boston, n=50, addStartEnd=TRUE, breakAtDateLine=F)             
+lines(inter2, col="#328cc1", lwd=2)
+
+# Text and Titles
+mapcities.1 <- rbind(Chicago, NYC, Charlotte, DC) %>% 
+  as.data.frame()
+colnames(mapcities.1) <- c("long","lat")
+text(rownames(mapcities.1), x=mapcities.1$long, y=mapcities.1$lat,  col="black", cex=1, pos=2)
+
+mapcities.2 <- rbind(Boston) %>% 
+  as.data.frame()
+colnames(mapcities.2) <- c("long","lat")
+text(rownames(mapcities.2), x=mapcities.2$long, y=mapcities.2$lat,  col="black", cex=1, pos=3)
+
+mapcities.5 <- rbind(Philadelphia) %>% 
+  as.data.frame()
+colnames(mapcities.5) <- c("long","lat")
+text(rownames(mapcities.5), x=mapcities.5$long, y=mapcities.5$lat,  col="black", cex=1, pos=4)
+
+title(main = "Top 5 Most Common Domestic Destinations from Boston")
+
+```
+
+```{r}
+from.BOS.internat = subset(dat, Departure.Station.Code == "BOS" & International.Status == "International")  ## international flights from BOS
+top5fromBOS_i = sort(table(from.BOS.internat$Arrival.City),decreasing=TRUE)[1:5]  ## top 5 dest from BOS
+kable(top5fromBOS_i)
+```
+
+```{r}
+# map of top 5 international locations from BOS
+
+# No margin
+par(mar=c(0,0,0,0))
+
+# Cities
+Boston = c(-71, 42)
+Toronto = c(-80, 44)
+London = c(0, 51)
+Amsterdam= c(5, 52)
+Montreal = c(-74, 45)
+Paris = c(3, 49)
+
+# Data frame
+mapcities.i <- rbind(Boston, Toronto, London, Amsterdam, Montreal, Paris) %>% 
+  as.data.frame()
+colnames(mapcities.i) <- c("long","lat")
+
+# Load geosphere
+library(geosphere)
+
+# Background map
+map('world', region=c('USA', 'Canada', 'Mexico', 'Denmark', 'UK', 'Germany', 'Iceland', 'Ireland', 'France', 'Spain', 'Portugal', 'Norway', 'Sweden', 'Morocco', 'Algeria', 'Tunisia', 'Netherlands', 'Belgium', 'Switzerland', 'Italy', 'Austria', 'Slovania', 'Czech Republic', 'Poland', 'Bulgaria', 'Croatia', 'Cypress', 'Estonia', 'Finland', 'Greece', 'Hungary', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Romania', 'Slovakia'),
+    col="#f2f2f2", fill=TRUE, bg="white", lwd=0.05,
+    mar=rep(0,4),border=0 
+#    ,ylim=c(-50,100), xlim=c(-100, 30) 
+)
+# ylim=c(-50,80), xlim=c(-100, 30) 
+# Dot for cities
+points(x=mapcities.i$long, y=mapcities.i$lat, col="#328cc1", cex=1, pch=20)
+points(x=-71, y=42, cex=4, pch="*", col="#ffa600")
+
+
+# Compute the connection between BOS and Toronto
+inter <- gcIntermediate(Boston,  Toronto, n=50, addStartEnd=TRUE, breakAtDateLine=F)
+
+# Show this connection
+lines(inter, col="#328cc1", lwd=2)
+ 
+# Between BOS and Amsterdam
+inter <- gcIntermediate(Boston,  Amsterdam, n=50, addStartEnd=TRUE, breakAtDateLine=F)             
+lines(inter, col="#328cc1", lwd=2)
+
+# Between BOS and London
+inter <- gcIntermediate(Boston,  London, n=50, addStartEnd=TRUE, breakAtDateLine=F)             
+lines(inter, col="#328cc1", lwd=2)
+
+# Between BOS and Montreal
+inter <- gcIntermediate(Boston,  Montreal, n=50, addStartEnd=TRUE, breakAtDateLine=F)             
+lines(inter, col="#328cc1", lwd=2)
+
+# Between BOS and Paris
+inter <- gcIntermediate(Boston,  Paris, n=50, addStartEnd=TRUE, breakAtDateLine=F)             
+lines(inter, col="#328cc1", lwd=2)
+
+# Text and Titles
+mapcities.3 <- rbind(Toronto) %>% 
+  as.data.frame()
+colnames(mapcities.3) <- c("long","lat")
+text(rownames(mapcities.3), x=mapcities.3$long, y=mapcities.3$lat,  col="black", cex=1, pos=2)
+
+mapcities.4 <- rbind(Amsterdam) %>% 
+  as.data.frame()
+colnames(mapcities.4) <- c("long","lat")
+text(rownames(mapcities.4), x=mapcities.4$long, y=mapcities.4$lat,  col="black", cex=1, pos=4)
+
+mapcities.6 <- rbind(Boston, Paris) %>% 
+  as.data.frame()
+colnames(mapcities.6) <- c("long","lat")
+text(rownames(mapcities.6), x=mapcities.6$long, y=mapcities.6$lat,  col="black", cex=1, pos=1)
+
+mapcities.6 <- rbind(London, Montreal) %>% 
+  as.data.frame()
+colnames(mapcities.6) <- c("long","lat")
+text(rownames(mapcities.6), x=mapcities.6$long, y=mapcities.6$lat,  col="black", cex=1, pos=3)
+
+title(main = "Top 5 Most Common International Destinations from Boston", cex.main = 0.8, adj=0)
+
+```
