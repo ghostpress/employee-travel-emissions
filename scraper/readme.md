@@ -1,7 +1,5 @@
 ## Python Scraper
 
-### Overview
-
 This code is written in Python 3 for scraping flight emissions calculations from the ICAO
 Carbon Emissions Calculator (ICEC). It requires the Selenium library for Python and the chromedriver by Google.
 For a full requirements list, see the requirements.txt file in the main directory. 
