@@ -1,1 +1,0 @@
-This code is written in Python for some preliminary analysis of the emissions data. Much of these results were not used in our final report, but are still interesting, and helped the less-R-proficient team member better understand the data. 
